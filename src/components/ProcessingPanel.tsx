@@ -30,6 +30,7 @@ type PipelineStage = "idle" | "active" | "done" | "error";
 
 interface PipelineState {
   mapping: PipelineStage;
+  rules: PipelineStage;
   cleaning: PipelineStage;
   verifying: PipelineStage;
   correcting: PipelineStage;
@@ -38,6 +39,7 @@ interface PipelineState {
 
 const INITIAL_PIPELINE: PipelineState = {
   mapping: "idle",
+  rules: "idle",
   cleaning: "idle",
   verifying: "idle",
   correcting: "idle",
