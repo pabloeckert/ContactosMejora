@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Play, Pause, Square, Loader2, Sparkles, Zap, Globe, Bot } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,8 +36,14 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
   const pauseRef = useRef(false);
   const stopRef = useRef(false);
 
-  const allColumns = [...new Set(files.flatMap((f) => f.columns))];
-  const allRows = files.flatMap((f) => f.rows);
+  const allColumns = useMemo(() => [...new Set(files.flatMap((f) => f.columns))], [files]);
+  const allRowsRef = useRef<Record<string, string>[]>([]);
+  
+  // Only rebuild allRowsRef.current when files change (avoid 200k+ array on every render)
+  const filesKey = useMemo(() => files.map(f => f.id).join(","), [files]);
+  useMemo(() => {
+    allRowsRef.current = files.flatMap((f) => f.rows);
+  }, [filesKey]);
 
   const addLog = useCallback((type: ProcessingLog["type"], message: string) => {
     setLogs((prev) => [
@@ -46,16 +52,15 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
     ]);
   }, []);
 
-  const initMappings = useCallback(() => {
-    const detected = autoDetectMappings(allColumns);
-    setMappings(detected);
-    const mapped = detected.filter((m) => m.target !== "ignore").length;
-    addLog("info", `${mapped}/${allColumns.length} columnas mapeadas automáticamente`);
-  }, [allColumns, addLog]);
-
-  if (files.length > 0 && mappings.length === 0) {
-    initMappings();
-  }
+  // Auto-detect mappings when files change
+  useEffect(() => {
+    if (files.length > 0 && mappings.length === 0) {
+      const detected = autoDetectMappings(allColumns);
+      setMappings(detected);
+      const mapped = detected.filter((m) => m.target !== "ignore").length;
+      addLog("info", `${mapped}/${allColumns.length} columnas mapeadas automáticamente`);
+    }
+  }, [filesKey]);
 
   const handleMappingChange = (index: number, target: ContactField) => {
     setMappings((prev) => prev.map((m, i) => (i === index ? { ...m, target } : m)));
@@ -129,7 +134,7 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
   const startProcessing = useCallback(async () => {
     stopRef.current = false;
     pauseRef.current = false;
-    const totalRows = allRows.length;
+    const totalRows = allRowsRef.current.length;
     const startTime = Date.now();
     setStats({ totalRows, processedRows: 0, uniqueContacts: 0, duplicatesFound: 0, aiCleanedCount: 0, rowsPerSecond: 0, startTime, status: "processing" });
     addLog("info", `Iniciando procesamiento de ${totalRows} filas...`);
@@ -138,11 +143,11 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
     const activeMappings = mappings.filter((m) => m.target !== "ignore");
 
     // Phase 1: Map columns
-    for (let i = 0; i < allRows.length; i++) {
+    for (let i = 0; i < allRowsRef.current.length; i++) {
       if (stopRef.current) { addLog("warning", "Procesamiento detenido"); break; }
       while (pauseRef.current) { await new Promise((r) => setTimeout(r, 100)); }
 
-      const row = allRows[i];
+      const row = allRowsRef.current[i];
       const contact: Partial<UnifiedContact> = {
         id: crypto.randomUUID(),
         source: files.find((f) => f.rows.includes(row))?.name || "unknown",
@@ -166,7 +171,7 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
 
       rawContacts.push(contact);
 
-      if (i % 50 === 0 || i === allRows.length - 1) {
+      if (i % 50 === 0 || i === allRowsRef.current.length - 1) {
         const elapsed = (Date.now() - startTime) / 1000;
         setStats(prev => ({
           ...prev, processedRows: i + 1,
@@ -216,7 +221,7 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
     addLog("success", `✓ Completado: ${unique.length} únicos, ${dupes.length} duplicados, ${aiCount} limpiados por IA`);
     toast.success(`Procesamiento completado: ${unique.length} contactos únicos`);
     onProcessingComplete(contacts);
-  }, [allRows, files, mappings, addLog, onProcessingComplete]);
+  }, [allRowsRef.current, files, mappings, addLog, onProcessingComplete]);
 
   const progress = stats.totalRows > 0 ? (stats.processedRows / stats.totalRows) * 100 : 0;
   const statusLabel = {
@@ -226,7 +231,7 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
 
   return (
     <div className="space-y-4">
-      <ColumnMapper mappings={mappings} sampleData={allRows.slice(0, 3)} onMappingChange={handleMappingChange} />
+      <ColumnMapper mappings={mappings} sampleData={allRowsRef.current.slice(0, 3)} onMappingChange={handleMappingChange} />
 
       <Card>
         <CardHeader className="pb-3">
