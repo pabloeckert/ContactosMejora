@@ -1,8 +1,9 @@
 import { useCallback, useRef, useState } from "react";
-import { Play, Pause, Square, Loader2, Sparkles } from "lucide-react";
+import { Play, Pause, Square, Loader2, Sparkles, Zap, Globe, Bot } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ColumnMapper } from "./ColumnMapper";
@@ -25,6 +26,7 @@ interface ProcessingPanelProps {
 }
 
 export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanelProps) {
+  const [aiProvider, setAiProvider] = useState<string>("groq");
   const [mappings, setMappings] = useState<ColumnMapping[]>([]);
   const [stats, setStats] = useState<ProcessingStats>({
     totalRows: 0, processedRows: 0, uniqueContacts: 0, duplicatesFound: 0,
@@ -86,7 +88,7 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
         }));
 
         const { data, error } = await supabase.functions.invoke("clean-contacts", {
-          body: { contacts: payload },
+          body: { contacts: payload, provider: aiProvider },
         });
 
         if (error || data?.error) {
@@ -228,32 +230,53 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
 
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              Procesamiento
-              <Badge variant="outline" className="text-[10px] gap-1">
-                <Sparkles className="h-3 w-3" /> IA integrada
-              </Badge>
-            </span>
-            <div className="flex gap-2">
-              <Button size="sm" onClick={startProcessing} disabled={stats.status === "processing" || stats.status === "cleaning" || files.length === 0}>
-                {(stats.status === "processing" || stats.status === "cleaning") ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-                {statusLabel[stats.status]}
-              </Button>
-              {stats.status === "processing" && (
-                <>
-                  <Button size="sm" variant="outline" onClick={() => { pauseRef.current = !pauseRef.current; setStats((p) => ({ ...p, status: pauseRef.current ? "paused" : "processing" })); }}>
-                    <Pause className="h-4 w-4" />
-                  </Button>
-                  <Button size="sm" variant="destructive" onClick={() => { stopRef.current = true; }}>
-                    <Square className="h-4 w-4" />
-                  </Button>
-                </>
-              )}
+          <CardTitle className="text-sm flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                Procesamiento
+                <Badge variant="outline" className="text-[10px] gap-1">
+                  <Sparkles className="h-3 w-3" /> IA integrada
+                </Badge>
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground whitespace-nowrap">Motor IA:</span>
+              <Select value={aiProvider} onValueChange={setAiProvider}>
+                <SelectTrigger className="h-8 text-xs w-[220px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="groq">
+                    <span className="flex items-center gap-1.5"><Zap className="h-3 w-3 text-yellow-500" /> Groq (Llama 3.3) — Rápido</span>
+                  </SelectItem>
+                  <SelectItem value="openrouter">
+                    <span className="flex items-center gap-1.5"><Globe className="h-3 w-3 text-purple-500" /> OpenRouter (Mistral) — Free</span>
+                  </SelectItem>
+                  <SelectItem value="lovable">
+                    <span className="flex items-center gap-1.5"><Bot className="h-3 w-3 text-blue-500" /> Lovable AI (Gemini Flash)</span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="flex gap-2 justify-end">
+            <Button size="sm" onClick={startProcessing} disabled={stats.status === "processing" || stats.status === "cleaning" || files.length === 0}>
+              {(stats.status === "processing" || stats.status === "cleaning") ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+              {statusLabel[stats.status]}
+            </Button>
+            {stats.status === "processing" && (
+              <>
+                <Button size="sm" variant="outline" onClick={() => { pauseRef.current = !pauseRef.current; setStats((p) => ({ ...p, status: pauseRef.current ? "paused" : "processing" })); }}>
+                  <Pause className="h-4 w-4" />
+                </Button>
+                <Button size="sm" variant="destructive" onClick={() => { stopRef.current = true; }}>
+                  <Square className="h-4 w-4" />
+                </Button>
+              </>
+            )}
+          </div>
           <Progress value={progress} className="h-2" />
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <StatCard label="Procesadas" value={stats.processedRows} total={stats.totalRows} />
