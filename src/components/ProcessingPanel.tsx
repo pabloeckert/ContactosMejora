@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Play, Pause, Square, Loader2, Sparkles, Zap, Globe, Bot, BrainCircuit, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { Play, Pause, Square, Loader2, Sparkles, Zap, Globe, Bot, BrainCircuit, CheckCircle2, XCircle, Clock, Wrench } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -9,6 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ColumnMapper } from "./ColumnMapper";
 import { autoDetectMappings } from "@/lib/column-mapper";
 import { checkDuplicate } from "@/lib/dedup";
+import { batchRuleClean } from "@/lib/rule-cleaner";
 import { supabase } from "@/integrations/supabase/client";
 import type {
   ParsedFile,
@@ -29,6 +30,7 @@ type PipelineStage = "idle" | "active" | "done" | "error";
 
 interface PipelineState {
   mapping: PipelineStage;
+  rules: PipelineStage;
   cleaning: PipelineStage;
   verifying: PipelineStage;
   correcting: PipelineStage;
@@ -37,6 +39,7 @@ interface PipelineState {
 
 const INITIAL_PIPELINE: PipelineState = {
   mapping: "idle",
+  rules: "idle",
   cleaning: "idle",
   verifying: "idle",
   correcting: "idle",
@@ -228,12 +231,40 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
       return;
     }
 
-    setPipelineState(prev => ({ ...prev, mapping: "done" }));
+    setPipelineState(prev => ({ ...prev, mapping: "done", rules: "active" }));
 
-    // Phase 2: AI cleaning
+    // Phase 2: Rule-based cleaning (fast, no AI)
+    addLog("info", `🔧 Limpieza por reglas de ${rawContacts.length} contactos...`);
+    const { cleaned: ruleCleaned, aiIndices } = batchRuleClean(rawContacts);
+
+    // Apply rule results
+    for (let i = 0; i < rawContacts.length; i++) {
+      rawContacts[i].firstName = ruleCleaned[i].firstName;
+      rawContacts[i].lastName = ruleCleaned[i].lastName;
+      rawContacts[i].email = ruleCleaned[i].email;
+      rawContacts[i].whatsapp = ruleCleaned[i].whatsapp;
+      rawContacts[i].company = ruleCleaned[i].company;
+      rawContacts[i].jobTitle = ruleCleaned[i].jobTitle;
+    }
+
+    const rulesOnly = rawContacts.length - aiIndices.length;
+    addLog("success", `✓ Reglas: ${rulesOnly} contactos limpios, ${aiIndices.length} necesitan IA`);
+    setPipelineState(prev => ({ ...prev, rules: "done" }));
+
+    // Phase 3: AI cleaning (only for contacts that need it)
     let cleanedContacts = rawContacts;
-    if (rawContacts.length > 0) {
-      cleanedContacts = await cleanWithAI(rawContacts);
+    if (aiIndices.length > 0) {
+      const aiContacts = aiIndices.map(i => rawContacts[i]);
+      addLog("info", `🤖 Enviando ${aiContacts.length}/${rawContacts.length} a IA (${Math.round(aiIndices.length/rawContacts.length*100)}%)`);
+      const aiCleaned = await cleanWithAI(aiContacts);
+      // Merge AI results back
+      for (let j = 0; j < aiIndices.length; j++) {
+        rawContacts[aiIndices[j]] = aiCleaned[j];
+      }
+      cleanedContacts = rawContacts;
+    } else {
+      addLog("info", "✓ Todos los contactos se limpiaron con reglas, IA omitida");
+      setPipelineState(prev => ({ ...prev, cleaning: "done", verifying: "done", correcting: "done" }));
     }
 
     // Phase 3: Dedup
@@ -323,10 +354,12 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
           {isPipeline && (isActive || stats.status === "done") && (
             <div className="rounded-lg border bg-card/50 p-3">
               <p className="text-xs font-medium text-muted-foreground mb-3">Pipeline de procesamiento</p>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 flex-wrap">
                 <PipelineStep icon={<Play className="h-3 w-3" />} label="Mapeo" state={pipelineState.mapping} />
                 <PipelineConnector active={pipelineState.mapping === "done"} />
-                <PipelineStep icon={<Zap className="h-3 w-3" />} label="Groq" sublabel="Limpieza" state={pipelineState.cleaning} />
+                <PipelineStep icon={<Wrench className="h-3 w-3" />} label="Reglas" sublabel="Limpieza rapida" state={pipelineState.rules} />
+                <PipelineConnector active={pipelineState.rules === "done"} />
+                <PipelineStep icon={<Zap className="h-3 w-3" />} label="Groq" sublabel="IA Limpieza" state={pipelineState.cleaning} />
                 <PipelineConnector active={pipelineState.cleaning === "done"} />
                 <PipelineStep icon={<Globe className="h-3 w-3" />} label="OpenRouter" sublabel="Verificacion" state={pipelineState.verifying} />
                 <PipelineConnector active={pipelineState.verifying === "done"} />
