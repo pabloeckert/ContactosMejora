@@ -36,8 +36,14 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
   const pauseRef = useRef(false);
   const stopRef = useRef(false);
 
-  const allColumns = [...new Set(files.flatMap((f) => f.columns))];
-  const allRows = files.flatMap((f) => f.rows);
+  const allColumns = useMemo(() => [...new Set(files.flatMap((f) => f.columns))], [files]);
+  const allRowsRef = useRef<Record<string, string>[]>([]);
+  
+  // Only rebuild allRows when files change (avoid 200k+ array on every render)
+  const filesKey = useMemo(() => files.map(f => f.id).join(","), [files]);
+  useMemo(() => {
+    allRowsRef.current = files.flatMap((f) => f.rows);
+  }, [filesKey]);
 
   const addLog = useCallback((type: ProcessingLog["type"], message: string) => {
     setLogs((prev) => [
@@ -46,15 +52,15 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
     ]);
   }, []);
 
-  const initMappings = useCallback(() => {
-    const detected = autoDetectMappings(allColumns);
-    setMappings(detected);
-    const mapped = detected.filter((m) => m.target !== "ignore").length;
-    addLog("info", `${mapped}/${allColumns.length} columnas mapeadas automáticamente`);
-  }, [allColumns, addLog]);
-
-  if (files.length > 0 && mappings.length === 0) {
-    initMappings();
+  // Auto-detect mappings when files change
+  useEffect(() => {
+    if (files.length > 0 && mappings.length === 0) {
+      const detected = autoDetectMappings(allColumns);
+      setMappings(detected);
+      const mapped = detected.filter((m) => m.target !== "ignore").length;
+      addLog("info", `${mapped}/${allColumns.length} columnas mapeadas automáticamente`);
+    }
+  }, [filesKey]);
   }
 
   const handleMappingChange = (index: number, target: ContactField) => {
