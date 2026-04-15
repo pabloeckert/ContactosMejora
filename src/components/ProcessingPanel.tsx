@@ -259,24 +259,24 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
               </Select>
             </div>
           </CardTitle>
-            <div className="flex gap-2">
-              <Button size="sm" onClick={startProcessing} disabled={stats.status === "processing" || stats.status === "cleaning" || files.length === 0}>
-                {(stats.status === "processing" || stats.status === "cleaning") ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-                {statusLabel[stats.status]}
-              </Button>
-              {stats.status === "processing" && (
-                <>
-                  <Button size="sm" variant="outline" onClick={() => { pauseRef.current = !pauseRef.current; setStats((p) => ({ ...p, status: pauseRef.current ? "paused" : "processing" })); }}>
-                    <Pause className="h-4 w-4" />
-                  </Button>
-                  <Button size="sm" variant="destructive" onClick={() => { stopRef.current = true; }}>
-                    <Square className="h-4 w-4" />
-                  </Button>
-                </>
-              )}
-            </div>
-          </CardTitle>
         </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex gap-2 justify-end">
+            <Button size="sm" onClick={startProcessing} disabled={stats.status === "processing" || stats.status === "cleaning" || files.length === 0}>
+              {(stats.status === "processing" || stats.status === "cleaning") ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+              {statusLabel[stats.status]}
+            </Button>
+            {stats.status === "processing" && (
+              <>
+                <Button size="sm" variant="outline" onClick={() => { pauseRef.current = !pauseRef.current; setStats((p) => ({ ...p, status: pauseRef.current ? "paused" : "processing" })); }}>
+                  <Pause className="h-4 w-4" />
+                </Button>
+                <Button size="sm" variant="destructive" onClick={() => { stopRef.current = true; }}>
+                  <Square className="h-4 w-4" />
+                </Button>
+              </>
+            )}
+          </div>
         <CardContent className="space-y-4">
           <Progress value={progress} className="h-2" />
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
