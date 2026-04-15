@@ -101,6 +101,13 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
           continue;
         }
 
+        // Show pipeline stages if available
+        if (data.stages && Array.isArray(data.stages)) {
+          for (const stage of data.stages) {
+            addLog("info", `   ⚙️ ${stage}`);
+          }
+        }
+
         const cleaned = data.contacts || [];
         for (let j = 0; j < batch.length && j < cleaned.length; j++) {
           result[i + j] = {
