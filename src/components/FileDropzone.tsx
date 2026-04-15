@@ -1,5 +1,5 @@
-import { useCallback, useState } from "react";
-import { Upload, FileSpreadsheet, FileText, File, X } from "lucide-react";
+import { useCallback, useRef, useState } from "react";
+import { Upload, FolderOpen, FileSpreadsheet, FileText, File, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
