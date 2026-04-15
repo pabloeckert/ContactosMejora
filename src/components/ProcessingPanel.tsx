@@ -254,12 +254,15 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground whitespace-nowrap">Motor IA:</span>
               <Select value={aiProvider} onValueChange={setAiProvider}>
-                <SelectTrigger className="h-8 text-xs w-[220px]">
+                <SelectTrigger className="h-8 text-xs w-[280px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="pipeline">
+                    <span className="flex items-center gap-1.5"><BrainCircuit className="h-3 w-3 text-orange-500" /> Pipeline 3 IAs — Mejor calidad</span>
+                  </SelectItem>
                   <SelectItem value="groq">
-                    <span className="flex items-center gap-1.5"><Zap className="h-3 w-3 text-yellow-500" /> Groq (Llama 3.3) — Rápido</span>
+                    <span className="flex items-center gap-1.5"><Zap className="h-3 w-3 text-yellow-500" /> Groq (Llama 3.3) — Rapido</span>
                   </SelectItem>
                   <SelectItem value="openrouter">
                     <span className="flex items-center gap-1.5"><Globe className="h-3 w-3 text-purple-500" /> OpenRouter (Mistral) — Free</span>
