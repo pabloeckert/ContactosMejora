@@ -74,9 +74,9 @@ export function exportJSON(contacts: UnifiedContact[]): string {
 }
 
 export function downloadFile(content: string | Uint8Array, filename: string, mimeType: string) {
-  const blob = content instanceof Uint8Array
+  const blob = typeof content === "string"
     ? new Blob([content], { type: mimeType })
-    : new Blob([content], { type: mimeType });
+    : new Blob([content.buffer as ArrayBuffer], { type: mimeType });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
