@@ -230,13 +230,35 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
 
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              Procesamiento
-              <Badge variant="outline" className="text-[10px] gap-1">
-                <Sparkles className="h-3 w-3" /> IA integrada
-              </Badge>
-            </span>
+          <CardTitle className="text-sm flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                Procesamiento
+                <Badge variant="outline" className="text-[10px] gap-1">
+                  <Sparkles className="h-3 w-3" /> IA integrada
+                </Badge>
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground whitespace-nowrap">Motor IA:</span>
+              <Select value={aiProvider} onValueChange={setAiProvider}>
+                <SelectTrigger className="h-8 text-xs w-[220px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="groq">
+                    <span className="flex items-center gap-1.5"><Zap className="h-3 w-3 text-yellow-500" /> Groq (Llama 3.3) — Rápido</span>
+                  </SelectItem>
+                  <SelectItem value="openrouter">
+                    <span className="flex items-center gap-1.5"><Globe className="h-3 w-3 text-purple-500" /> OpenRouter (Mistral) — Free</span>
+                  </SelectItem>
+                  <SelectItem value="lovable">
+                    <span className="flex items-center gap-1.5"><Bot className="h-3 w-3 text-blue-500" /> Lovable AI (Gemini Flash)</span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardTitle>
             <div className="flex gap-2">
               <Button size="sm" onClick={startProcessing} disabled={stats.status === "processing" || stats.status === "cleaning" || files.length === 0}>
                 {(stats.status === "processing" || stats.status === "cleaning") ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
