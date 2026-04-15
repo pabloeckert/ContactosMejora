@@ -10,6 +10,7 @@ import { saveContacts, updateContact, deleteContact } from "@/lib/db";
 import type { ParsedFile, UnifiedContact } from "@/types/contact";
 import { toast } from "sonner";
 import { Upload, Zap, Users, Download, BarChart3 } from "lucide-react";
+import { GoogleContactsPanel } from "@/components/GoogleContactsPanel";
 
 const Index = () => {
   const [files, setFiles] = useState<ParsedFile[]>([]);
@@ -105,7 +106,10 @@ const Index = () => {
           </TabsList>
 
           <TabsContent value="import">
-            <FileDropzone files={files} onFilesAdded={handleFilesAdded} onRemoveFile={handleRemoveFile} />
+            <div className="space-y-4">
+              <GoogleContactsPanel onContactsImported={(file) => handleFilesAdded([file])} />
+              <FileDropzone files={files} onFilesAdded={handleFilesAdded} onRemoveFile={handleRemoveFile} />
+            </div>
           </TabsContent>
 
           <TabsContent value="process">
