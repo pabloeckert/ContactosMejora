@@ -50,52 +50,56 @@ const Index = () => {
   const uniqueCount = contacts.filter((c) => !c.isDuplicate).length;
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-50 border-b bg-primary shadow-sm">
         <div className="container flex h-14 items-center justify-between px-4">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <div className="h-7 w-7 rounded-md bg-primary flex items-center justify-center">
-                <Users className="h-4 w-4 text-primary-foreground" />
+              <div className="h-8 w-8 rounded-lg bg-accent flex items-center justify-center">
+                <Users className="h-4 w-4 text-accent-foreground" />
               </div>
-              <h1 className="text-sm font-bold tracking-tight">ContactUnifier</h1>
+              <div>
+                <h1 className="text-sm font-bold tracking-tight text-primary-foreground">ContactUnifier</h1>
+              </div>
             </div>
-            <Badge variant="outline" className="text-[10px] hidden sm:inline-flex">AI Pro</Badge>
+            <Badge className="text-[10px] hidden sm:inline-flex bg-accent text-accent-foreground border-0 font-semibold">
+              AI Pro
+            </Badge>
           </div>
           <div className="flex items-center gap-3">
             {contacts.length > 0 && (
-              <Badge variant="secondary" className="text-xs">
+              <Badge className="text-xs bg-primary-foreground/20 text-primary-foreground border-0">
                 {uniqueCount.toLocaleString()} contactos
               </Badge>
             )}
-            <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse-glow" title="Online" />
+            <div className="h-2 w-2 rounded-full bg-success animate-pulse-glow" title="Online" />
           </div>
         </div>
       </header>
 
       {/* Main */}
-      <main className="flex-1 container px-4 py-4">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="w-full grid grid-cols-5 h-10">
-            <TabsTrigger value="import" className="text-xs gap-1">
-              <Upload className="h-3 w-3" />
+      <main className="flex-1 container px-4 py-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="w-full grid grid-cols-5 h-11 bg-muted/50">
+            <TabsTrigger value="import" className="text-xs gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Upload className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Importar</span>
             </TabsTrigger>
-            <TabsTrigger value="process" className="text-xs gap-1">
-              <Zap className="h-3 w-3" />
+            <TabsTrigger value="process" className="text-xs gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Zap className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Procesar</span>
             </TabsTrigger>
-            <TabsTrigger value="results" className="text-xs gap-1">
-              <Users className="h-3 w-3" />
+            <TabsTrigger value="results" className="text-xs gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Users className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Resultados</span>
             </TabsTrigger>
-            <TabsTrigger value="export" className="text-xs gap-1">
-              <Download className="h-3 w-3" />
+            <TabsTrigger value="export" className="text-xs gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Download className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Exportar</span>
             </TabsTrigger>
-            <TabsTrigger value="dashboard" className="text-xs gap-1">
-              <BarChart3 className="h-3 w-3" />
+            <TabsTrigger value="dashboard" className="text-xs gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <BarChart3 className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Dashboard</span>
             </TabsTrigger>
           </TabsList>

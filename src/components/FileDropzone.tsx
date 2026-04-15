@@ -20,10 +20,10 @@ function formatSize(bytes: number): string {
 }
 
 const typeIcons: Record<string, React.ReactNode> = {
-  CSV: <FileText className="h-4 w-4" />,
-  Excel: <FileSpreadsheet className="h-4 w-4" />,
-  VCF: <File className="h-4 w-4" />,
-  JSON: <FileText className="h-4 w-4" />,
+  CSV: <FileText className="h-4 w-4 text-success" />,
+  Excel: <FileSpreadsheet className="h-4 w-4 text-secondary" />,
+  VCF: <File className="h-4 w-4 text-primary" />,
+  JSON: <FileText className="h-4 w-4 text-accent-foreground" />,
 };
 
 export function FileDropzone({ files, onFilesAdded, onRemoveFile }: FileDropzoneProps) {
@@ -34,9 +34,7 @@ export function FileDropzone({ files, onFilesAdded, onRemoveFile }: FileDropzone
     async (fileList: FileList | File[]) => {
       setIsLoading(true);
       const parsed: ParsedFile[] = [];
-      const items = Array.from(fileList);
-
-      for (const file of items) {
+      for (const file of Array.from(fileList)) {
         try {
           const result = await parseFile(file);
           parsed.push(result);
@@ -45,7 +43,6 @@ export function FileDropzone({ files, onFilesAdded, onRemoveFile }: FileDropzone
           toast.error(`Error en ${file.name}: ${err.message}`);
         }
       }
-
       if (parsed.length > 0) onFilesAdded(parsed);
       setIsLoading(false);
     },
@@ -53,11 +50,7 @@ export function FileDropzone({ files, onFilesAdded, onRemoveFile }: FileDropzone
   );
 
   const onDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      setIsDragging(false);
-      handleFiles(e.dataTransfer.files);
-    },
+    (e: React.DragEvent) => { e.preventDefault(); setIsDragging(false); handleFiles(e.dataTransfer.files); },
     [handleFiles]
   );
 
@@ -69,25 +62,21 @@ export function FileDropzone({ files, onFilesAdded, onRemoveFile }: FileDropzone
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={onDrop}
-        className={`relative flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 transition-colors cursor-pointer ${
-          isDragging
-            ? "border-primary bg-primary/5"
-            : "border-border hover:border-primary/50"
+        className={`relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-10 transition-all cursor-pointer ${
+          isDragging ? "border-primary bg-primary/5 shadow-lg" : "border-border hover:border-primary/50 hover:bg-muted/30"
         }`}
         onClick={() => {
           const input = document.createElement("input");
-          input.type = "file";
-          input.multiple = true;
+          input.type = "file"; input.multiple = true;
           input.accept = ".csv,.xlsx,.xls,.vcf,.json,.txt";
-          input.onchange = (e) => {
-            const target = e.target as HTMLInputElement;
-            if (target.files) handleFiles(target.files);
-          };
+          input.onchange = (e) => { const t = e.target as HTMLInputElement; if (t.files) handleFiles(t.files); };
           input.click();
         }}
       >
-        <Upload className={`h-10 w-10 mb-3 ${isDragging ? "text-primary" : "text-muted-foreground"}`} />
-        <p className="text-sm font-medium">
+        <div className={`h-14 w-14 rounded-full flex items-center justify-center mb-4 ${isDragging ? "bg-primary/10" : "bg-muted"}`}>
+          <Upload className={`h-6 w-6 ${isDragging ? "text-primary" : "text-muted-foreground"}`} />
+        </div>
+        <p className="text-sm font-semibold text-foreground">
           {isLoading ? "Procesando archivos..." : "Arrastrá archivos aquí o hacé clic"}
         </p>
         <p className="text-xs text-muted-foreground mt-1">CSV, Excel, VCF, JSON</p>
@@ -103,26 +92,14 @@ export function FileDropzone({ files, onFilesAdded, onRemoveFile }: FileDropzone
           </CardHeader>
           <CardContent className="space-y-2">
             {files.map((f) => (
-              <div
-                key={f.id}
-                className="flex items-center justify-between rounded-md bg-secondary/50 px-3 py-2 text-sm"
-              >
+              <div key={f.id} className="flex items-center justify-between rounded-lg border bg-card px-3 py-2.5 text-sm">
                 <div className="flex items-center gap-2 min-w-0">
                   {typeIcons[f.type] || <File className="h-4 w-4" />}
-                  <span className="truncate font-medium">{f.name}</span>
-                  <Badge variant="outline" className="text-xs shrink-0">
-                    {f.type}
-                  </Badge>
-                  <span className="text-xs text-muted-foreground shrink-0">
-                    {f.rows.length} filas · {formatSize(f.size)}
-                  </span>
+                  <span className="truncate font-medium text-foreground">{f.name}</span>
+                  <Badge variant="outline" className="text-xs shrink-0">{f.type}</Badge>
+                  <span className="text-xs text-muted-foreground shrink-0">{f.rows.length} filas · {formatSize(f.size)}</span>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 shrink-0"
-                  onClick={() => onRemoveFile(f.id)}
-                >
+                <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0 text-muted-foreground hover:text-destructive" onClick={() => onRemoveFile(f.id)}>
                   <X className="h-3 w-3" />
                 </Button>
               </div>
