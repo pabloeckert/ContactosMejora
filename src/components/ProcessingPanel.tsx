@@ -221,7 +221,7 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
     addLog("success", `✓ Completado: ${unique.length} únicos, ${dupes.length} duplicados, ${aiCount} limpiados por IA`);
     toast.success(`Procesamiento completado: ${unique.length} contactos únicos`);
     onProcessingComplete(contacts);
-  }, [allRowsRef.current, files, mappings, addLog, onProcessingComplete]);
+  }, [files, mappings, addLog, onProcessingComplete, aiProvider]);
 
   const progress = stats.totalRows > 0 ? (stats.processedRows / stats.totalRows) * 100 : 0;
   const statusLabel = {
