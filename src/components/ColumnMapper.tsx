@@ -29,29 +29,19 @@ export function ColumnMapper({ mappings, sampleData, onMappingChange }: ColumnMa
           {mappings.map((mapping, i) => {
             const sample = sampleData[0]?.[mapping.source] || "";
             return (
-              <div
-                key={mapping.source}
-                className="flex items-center gap-2 rounded-md bg-secondary/30 px-3 py-2"
-              >
+              <div key={mapping.source} className="flex items-center gap-2 rounded-lg border bg-muted/30 px-3 py-2">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{mapping.source}</p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    ej: {sample || "—"}
-                  </p>
+                  <p className="text-sm font-medium truncate text-foreground">{mapping.source}</p>
+                  <p className="text-xs text-muted-foreground truncate">ej: {sample || "—"}</p>
                 </div>
                 <ArrowRight className="h-3 w-3 text-muted-foreground shrink-0" />
-                <Select
-                  value={mapping.target}
-                  onValueChange={(v) => onMappingChange(i, v as ContactField)}
-                >
+                <Select value={mapping.target} onValueChange={(v) => onMappingChange(i, v as ContactField)}>
                   <SelectTrigger className="w-[160px] h-8 text-xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {CONTACT_FIELDS.map((f) => (
-                      <SelectItem key={f.value} value={f.value} className="text-xs">
-                        {f.label}
-                      </SelectItem>
+                      <SelectItem key={f.value} value={f.value} className="text-xs">{f.label}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

@@ -27,14 +27,8 @@ interface ProcessingPanelProps {
 export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanelProps) {
   const [mappings, setMappings] = useState<ColumnMapping[]>([]);
   const [stats, setStats] = useState<ProcessingStats>({
-    totalRows: 0,
-    processedRows: 0,
-    uniqueContacts: 0,
-    duplicatesFound: 0,
-    invalidPhones: 0,
-    rowsPerSecond: 0,
-    startTime: 0,
-    status: "idle",
+    totalRows: 0, processedRows: 0, uniqueContacts: 0, duplicatesFound: 0,
+    invalidPhones: 0, rowsPerSecond: 0, startTime: 0, status: "idle",
   });
   const [logs, setLogs] = useState<ProcessingLog[]>([]);
   const pauseRef = useRef(false);
@@ -57,7 +51,6 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
     addLog("info", `${mapped}/${allColumns.length} columnas mapeadas automáticamente`);
   }, [allColumns, addLog]);
 
-  // Auto-init mappings when files change
   if (files.length > 0 && mappings.length === 0) {
     initMappings();
   }
@@ -69,7 +62,6 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
   const startProcessing = useCallback(async () => {
     stopRef.current = false;
     pauseRef.current = false;
-
     const totalRows = allRows.length;
     const startTime = Date.now();
     setStats({ totalRows, processedRows: 0, uniqueContacts: 0, duplicatesFound: 0, invalidPhones: 0, rowsPerSecond: 0, startTime, status: "processing" });
@@ -79,14 +71,8 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
     const activeMappings = mappings.filter((m) => m.target !== "ignore");
 
     for (let i = 0; i < allRows.length; i++) {
-      if (stopRef.current) {
-        addLog("warning", "Procesamiento detenido por el usuario");
-        break;
-      }
-
-      while (pauseRef.current) {
-        await new Promise((r) => setTimeout(r, 100));
-      }
+      if (stopRef.current) { addLog("warning", "Procesamiento detenido por el usuario"); break; }
+      while (pauseRef.current) { await new Promise((r) => setTimeout(r, 100)); }
 
       const row = allRows[i];
       const contact: Partial<UnifiedContact> = {
@@ -105,7 +91,6 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
         }
       }
 
-      // Fill defaults
       contact.firstName = contact.firstName || "";
       contact.lastName = contact.lastName || "";
       contact.email = contact.email || "";
@@ -122,18 +107,13 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
       contact.website = contact.website || "";
       contact.birthday = contact.birthday || "";
 
-      // Skip empty
-      if (!contact.firstName && !contact.lastName && !contact.email && !contact.phone) {
-        continue;
-      }
+      if (!contact.firstName && !contact.lastName && !contact.email && !contact.phone) continue;
 
-      // Phone validation
       const phoneResult = validatePhone(contact.phone);
       contact.phoneValid = phoneResult.valid;
       contact.phoneFormatted = phoneResult.formatted;
       contact.countryCode = phoneResult.country;
 
-      // Dedup
       const dedupResult = checkDuplicate(
         { firstName: contact.firstName, lastName: contact.lastName, email: contact.email, phone: contact.phone },
         contacts
@@ -144,28 +124,22 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
 
       contacts.push(contact as UnifiedContact);
 
-      // Update stats every 50 rows
       if (i % 50 === 0 || i === allRows.length - 1) {
         const elapsed = (Date.now() - startTime) / 1000;
         setStats({
-          totalRows,
-          processedRows: i + 1,
+          totalRows, processedRows: i + 1,
           uniqueContacts: contacts.filter((c) => !c.isDuplicate).length,
           duplicatesFound: contacts.filter((c) => c.isDuplicate).length,
           invalidPhones: contacts.filter((c) => !c.phoneValid && c.phone).length,
           rowsPerSecond: Math.round((i + 1) / elapsed),
-          startTime,
-          status: pauseRef.current ? "paused" : "processing",
+          startTime, status: pauseRef.current ? "paused" : "processing",
         });
       }
-
-      // Yield to UI
       if (i % 100 === 0) await new Promise((r) => setTimeout(r, 0));
     }
 
     const unique = contacts.filter((c) => !c.isDuplicate);
     const dupes = contacts.filter((c) => c.isDuplicate);
-
     setStats((prev) => ({ ...prev, status: "done", processedRows: totalRows }));
     addLog("success", `✓ Completado: ${unique.length} únicos, ${dupes.length} duplicados`);
     toast.success(`Procesamiento completado: ${unique.length} contactos únicos`);
@@ -176,46 +150,23 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
 
   return (
     <div className="space-y-4">
-      <ColumnMapper
-        mappings={mappings}
-        sampleData={allRows.slice(0, 3)}
-        onMappingChange={handleMappingChange}
-      />
+      <ColumnMapper mappings={mappings} sampleData={allRows.slice(0, 3)} onMappingChange={handleMappingChange} />
 
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm flex items-center justify-between">
             <span>Procesamiento</span>
             <div className="flex gap-2">
-              <Button
-                size="sm"
-                onClick={startProcessing}
-                disabled={stats.status === "processing" || files.length === 0}
-              >
-                {stats.status === "processing" ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Play className="h-4 w-4" />
-                )}
+              <Button size="sm" onClick={startProcessing} disabled={stats.status === "processing" || files.length === 0}>
+                {stats.status === "processing" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
                 {stats.status === "idle" ? "Iniciar" : stats.status === "done" ? "Reprocesar" : "Procesando..."}
               </Button>
               {stats.status === "processing" && (
                 <>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      pauseRef.current = !pauseRef.current;
-                      setStats((p) => ({ ...p, status: pauseRef.current ? "paused" : "processing" }));
-                    }}
-                  >
+                  <Button size="sm" variant="outline" onClick={() => { pauseRef.current = !pauseRef.current; setStats((p) => ({ ...p, status: pauseRef.current ? "paused" : "processing" })); }}>
                     <Pause className="h-4 w-4" />
                   </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => { stopRef.current = true; }}
-                  >
+                  <Button size="sm" variant="destructive" onClick={() => { stopRef.current = true; }}>
                     <Square className="h-4 w-4" />
                   </Button>
                 </>
@@ -225,11 +176,10 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
         </CardHeader>
         <CardContent className="space-y-4">
           <Progress value={progress} className="h-2" />
-
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <StatCard label="Procesadas" value={stats.processedRows} total={stats.totalRows} />
-            <StatCard label="Únicos" value={stats.uniqueContacts} color="text-green-400" />
-            <StatCard label="Duplicados" value={stats.duplicatesFound} color="text-yellow-400" />
+            <StatCard label="Únicos" value={stats.uniqueContacts} color="text-success" />
+            <StatCard label="Duplicados" value={stats.duplicatesFound} color="text-accent-foreground" />
             <StatCard label="Vel." value={`${stats.rowsPerSecond}/s`} />
           </div>
         </CardContent>
@@ -245,19 +195,14 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
               <div className="space-y-1 text-xs font-mono">
                 {logs.map((log) => (
                   <div key={log.id} className="flex gap-2">
-                    <span className="text-muted-foreground shrink-0">
-                      {log.timestamp.toLocaleTimeString()}
-                    </span>
-                    <Badge
-                      variant={log.type === "error" ? "destructive" : "outline"}
-                      className="text-[10px] h-4 shrink-0"
-                    >
+                    <span className="text-muted-foreground shrink-0">{log.timestamp.toLocaleTimeString()}</span>
+                    <Badge variant={log.type === "error" ? "destructive" : "outline"} className="text-[10px] h-4 shrink-0">
                       {log.type}
                     </Badge>
                     <span className={
                       log.type === "error" ? "text-destructive" :
-                      log.type === "success" ? "text-green-400" :
-                      log.type === "warning" ? "text-yellow-400" : ""
+                      log.type === "success" ? "text-success" :
+                      log.type === "warning" ? "text-warning" : ""
                     }>
                       {log.message}
                     </span>
@@ -274,13 +219,12 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
 
 function StatCard({ label, value, total, color }: { label: string; value: number | string; total?: number; color?: string }) {
   return (
-    <div className="rounded-md bg-secondary/50 p-3 text-center">
-      <p className={`text-lg font-bold ${color || ""}`}>
+    <div className="rounded-lg border bg-card p-3 text-center">
+      <p className={`text-lg font-bold ${color || "text-foreground"}`}>
         {typeof value === "number" ? value.toLocaleString() : value}
       </p>
       <p className="text-xs text-muted-foreground">
-        {label}
-        {total != null && ` / ${total.toLocaleString()}`}
+        {label}{total != null && ` / ${total.toLocaleString()}`}
       </p>
     </div>
   );
