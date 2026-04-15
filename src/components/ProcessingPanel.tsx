@@ -39,7 +39,7 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
   const allColumns = useMemo(() => [...new Set(files.flatMap((f) => f.columns))], [files]);
   const allRowsRef = useRef<Record<string, string>[]>([]);
   
-  // Only rebuild allRows when files change (avoid 200k+ array on every render)
+  // Only rebuild allRowsRef.current when files change (avoid 200k+ array on every render)
   const filesKey = useMemo(() => files.map(f => f.id).join(","), [files]);
   useMemo(() => {
     allRowsRef.current = files.flatMap((f) => f.rows);
@@ -134,7 +134,7 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
   const startProcessing = useCallback(async () => {
     stopRef.current = false;
     pauseRef.current = false;
-    const totalRows = allRows.length;
+    const totalRows = allRowsRef.current.length;
     const startTime = Date.now();
     setStats({ totalRows, processedRows: 0, uniqueContacts: 0, duplicatesFound: 0, aiCleanedCount: 0, rowsPerSecond: 0, startTime, status: "processing" });
     addLog("info", `Iniciando procesamiento de ${totalRows} filas...`);
@@ -143,11 +143,11 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
     const activeMappings = mappings.filter((m) => m.target !== "ignore");
 
     // Phase 1: Map columns
-    for (let i = 0; i < allRows.length; i++) {
+    for (let i = 0; i < allRowsRef.current.length; i++) {
       if (stopRef.current) { addLog("warning", "Procesamiento detenido"); break; }
       while (pauseRef.current) { await new Promise((r) => setTimeout(r, 100)); }
 
-      const row = allRows[i];
+      const row = allRowsRef.current[i];
       const contact: Partial<UnifiedContact> = {
         id: crypto.randomUUID(),
         source: files.find((f) => f.rows.includes(row))?.name || "unknown",
@@ -171,7 +171,7 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
 
       rawContacts.push(contact);
 
-      if (i % 50 === 0 || i === allRows.length - 1) {
+      if (i % 50 === 0 || i === allRowsRef.current.length - 1) {
         const elapsed = (Date.now() - startTime) / 1000;
         setStats(prev => ({
           ...prev, processedRows: i + 1,
@@ -221,7 +221,7 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
     addLog("success", `✓ Completado: ${unique.length} únicos, ${dupes.length} duplicados, ${aiCount} limpiados por IA`);
     toast.success(`Procesamiento completado: ${unique.length} contactos únicos`);
     onProcessingComplete(contacts);
-  }, [allRows, files, mappings, addLog, onProcessingComplete]);
+  }, [allRowsRef.current, files, mappings, addLog, onProcessingComplete]);
 
   const progress = stats.totalRows > 0 ? (stats.processedRows / stats.totalRows) * 100 : 0;
   const statusLabel = {
@@ -231,7 +231,7 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
 
   return (
     <div className="space-y-4">
-      <ColumnMapper mappings={mappings} sampleData={allRows.slice(0, 3)} onMappingChange={handleMappingChange} />
+      <ColumnMapper mappings={mappings} sampleData={allRowsRef.current.slice(0, 3)} onMappingChange={handleMappingChange} />
 
       <Card>
         <CardHeader className="pb-3">
