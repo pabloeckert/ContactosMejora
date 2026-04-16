@@ -399,21 +399,49 @@ export function ProcessingPanel({ files, onProcessingComplete, onResetAll }: Pro
             </div>
           )}
 
-          <div className="flex gap-2 justify-end">
-            <Button size="sm" onClick={startProcessing} disabled={isActive || files.length === 0}>
-              {isActive ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-              {statusLabel[stats.status]}
-            </Button>
-            {stats.status === "processing" && (
-              <>
-                <Button size="sm" variant="outline" onClick={() => { pauseRef.current = !pauseRef.current; setStats((p) => ({ ...p, status: pauseRef.current ? "paused" : "processing" })); }}>
-                  <Pause className="h-4 w-4" />
+          <div className="flex gap-2 justify-between">
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={async () => {
+                await clearContacts();
+                setLogs([]);
+                setStats({ totalRows: 0, processedRows: 0, uniqueContacts: 0, duplicatesFound: 0, aiCleanedCount: 0, rowsPerSecond: 0, startTime: 0, status: "idle" });
+                setPipelineState(INITIAL_PIPELINE);
+                addLog("info", "🧹 Limpieza completada — logs y estado reiniciados");
+                toast.success("Estado limpiado");
+              }}>
+                <Trash2 className="h-4 w-4" />
+                Clean Up
+              </Button>
+              {onResetAll && (
+                <Button size="sm" variant="destructive" onClick={() => {
+                  stopRef.current = true;
+                  onResetAll();
+                  setLogs([]);
+                  setStats({ totalRows: 0, processedRows: 0, uniqueContacts: 0, duplicatesFound: 0, aiCleanedCount: 0, rowsPerSecond: 0, startTime: 0, status: "idle" });
+                  setPipelineState(INITIAL_PIPELINE);
+                  toast.success("Todo reiniciado");
+                }}>
+                  <RotateCcw className="h-4 w-4" />
+                  Reset All
                 </Button>
-                <Button size="sm" variant="destructive" onClick={() => { stopRef.current = true; }}>
-                  <Square className="h-4 w-4" />
-                </Button>
-              </>
-            )}
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={startProcessing} disabled={isActive || files.length === 0}>
+                {isActive ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+                {statusLabel[stats.status]}
+              </Button>
+              {stats.status === "processing" && (
+                <>
+                  <Button size="sm" variant="outline" onClick={() => { pauseRef.current = !pauseRef.current; setStats((p) => ({ ...p, status: pauseRef.current ? "paused" : "processing" })); }}>
+                    <Pause className="h-4 w-4" />
+                  </Button>
+                  <Button size="sm" variant="destructive" onClick={() => { stopRef.current = true; }}>
+                    <Square className="h-4 w-4" />
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
           <Progress value={progress} className="h-2" />
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
