@@ -281,8 +281,8 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
     setPipelineState(prev => ({ ...prev, dedup: "active" }));
     addLog("info", "Detectando duplicados...");
     const contacts: UnifiedContact[] = [];
-    for (const raw of cleanedContacts) {
-      const contact = raw as UnifiedContact;
+    for (let i = 0; i < cleanedContacts.length; i++) {
+      const contact = cleanedContacts[i] as UnifiedContact;
       const dedupResult = checkDuplicate(
         { firstName: contact.firstName, lastName: contact.lastName, email: contact.email, whatsapp: contact.whatsapp },
         contacts
@@ -291,6 +291,8 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
       contact.duplicateOf = dedupResult.duplicateOf;
       contact.confidence = dedupResult.confidence;
       contacts.push(contact);
+      // Yield every 1000 rows to keep browser responsive
+      if (i % 1000 === 0) await new Promise((r) => setTimeout(r, 0));
     }
 
     setPipelineState(prev => ({ ...prev, dedup: "done" }));
