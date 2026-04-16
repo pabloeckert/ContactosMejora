@@ -48,6 +48,14 @@ const Index = () => {
     toast.success("Contacto eliminado");
   }, []);
 
+  const handleResetAll = useCallback(async () => {
+    setFiles([]);
+    setContacts([]);
+    await clearContacts();
+    setActiveTab("import");
+    toast.success("Todo reiniciado");
+  }, []);
+
   const uniqueCount = contacts.filter((c) => !c.isDuplicate).length;
 
   return (
