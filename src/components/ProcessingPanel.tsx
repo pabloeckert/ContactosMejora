@@ -203,7 +203,7 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
       const row = allRowsRef.current[i];
       const contact: Partial<UnifiedContact> = {
         id: crypto.randomUUID(),
-        source: files.find((f) => f.rows.includes(row))?.name || "unknown",
+        source: rowSourceMap.get(row) || "unknown",
         aiCleaned: false,
       };
 
