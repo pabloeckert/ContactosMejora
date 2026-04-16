@@ -6,7 +6,7 @@ import { ProcessingPanel } from "@/components/ProcessingPanel";
 import { ContactsTable } from "@/components/ContactsTable";
 import { ExportPanel } from "@/components/ExportPanel";
 import { DashboardPanel } from "@/components/DashboardPanel";
-import { saveContacts, updateContact, deleteContact } from "@/lib/db";
+import { saveContacts, updateContact, deleteContact, clearContacts } from "@/lib/db";
 import type { ParsedFile, UnifiedContact } from "@/types/contact";
 import { toast } from "sonner";
 import { Upload, Zap, Users, Download, BarChart3 } from "lucide-react";
