@@ -186,7 +186,8 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
     const rawContacts: Partial<UnifiedContact>[] = [];
     const activeMappings = mappings.filter((m) => m.target !== "ignore");
 
-    // Phase 1: Map columns
+    // Phase 1: Map columns — yield every 500 rows to prevent browser hang
+    const CHUNK_SIZE = 500;
     for (let i = 0; i < allRowsRef.current.length; i++) {
       if (stopRef.current) { addLog("warning", "Procesamiento detenido"); break; }
       while (pauseRef.current) { await new Promise((r) => setTimeout(r, 100)); }
@@ -215,14 +216,15 @@ export function ProcessingPanel({ files, onProcessingComplete }: ProcessingPanel
 
       rawContacts.push(contact);
 
-      if (i % 50 === 0 || i === allRowsRef.current.length - 1) {
+      if (i % CHUNK_SIZE === 0 || i === allRowsRef.current.length - 1) {
         const elapsed = (Date.now() - startTime) / 1000;
         setStats(prev => ({
           ...prev, processedRows: i + 1,
           rowsPerSecond: Math.round((i + 1) / elapsed),
         }));
+        // Yield to main thread to prevent RESULT_CODE_HUNG
+        await new Promise((r) => setTimeout(r, 0));
       }
-      if (i % 100 === 0) await new Promise((r) => setTimeout(r, 0));
     }
 
     if (stopRef.current) {
