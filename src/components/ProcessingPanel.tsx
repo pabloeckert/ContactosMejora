@@ -333,7 +333,7 @@ export function ProcessingPanel({ files, onProcessingComplete, onResetAll }: Pro
 
   return (
     <div className="space-y-4">
-      <ColumnMapper mappings={mappings} sampleData={allRowsRef.current.slice(0, 3)} onMappingChange={handleMappingChange} />
+      <ColumnMapper mappings={mappings} sampleData={allRowsRef.current} onMappingChange={handleMappingChange} />
 
       <Card>
         <CardHeader className="pb-3">
