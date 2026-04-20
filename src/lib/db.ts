@@ -1,7 +1,7 @@
 import { openDB, type IDBPDatabase } from "idb";
 import type { UnifiedContact } from "@/types/contact";
 
-const DB_NAME = "contact-unifier";
+const DB_NAME = "mejoraapp";
 const DB_VERSION = 2;
 
 let dbInstance: IDBPDatabase | null = null;
