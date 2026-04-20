@@ -12,7 +12,7 @@ import { checkDuplicate } from "@/lib/dedup";
 import { batchRuleClean } from "@/lib/rule-cleaner";
 import { clearContacts } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
-import { getActiveKeys } from "./ApiKeysPanel";
+import { getActiveKeysMulti } from "./ApiKeysPanel";
 import type {
   ParsedFile,
   ColumnMapping,
@@ -121,7 +121,7 @@ export function ProcessingPanel({ files, onProcessingComplete, onResetAll }: Pro
         }));
 
         const { data, error } = await supabase.functions.invoke("clean-contacts", {
-          body: { contacts: payload, provider: aiProvider, customKeys: getActiveKeys() },
+          body: { contacts: payload, provider: aiProvider, customKeys: getActiveKeysMulti() },
         });
 
         if (error || data?.error) {
@@ -333,7 +333,7 @@ export function ProcessingPanel({ files, onProcessingComplete, onResetAll }: Pro
 
   return (
     <div className="space-y-4">
-      <ColumnMapper mappings={mappings} sampleData={allRowsRef.current.slice(0, 3)} onMappingChange={handleMappingChange} />
+      <ColumnMapper mappings={mappings} sampleData={allRowsRef.current} onMappingChange={handleMappingChange} />
 
       <Card>
         <CardHeader className="pb-3">
