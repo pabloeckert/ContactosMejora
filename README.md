@@ -1,10 +1,10 @@
-# MejoraApp
+# MejoraContactos
 
 Limpieza, deduplicación y unificación de contactos con IA.
 
 ## Descripción
 
-MejoraApp es una aplicación web especializada en consolidar, limpiar y deduplicar bases de contactos de múltiples fuentes heterogéneas (CSV, Excel, VCF, JSON, Google Contacts).
+MejoraContactos es una aplicación web especializada en consolidar, limpiar y deduplicar bases de contactos de múltiples fuentes heterogéneas (CSV, Excel, VCF, JSON, Google Contacts).
 
 ## Stack
 
@@ -42,7 +42,7 @@ MejoraApp es una aplicación web especializada en consolidar, limpiar y deduplic
 
 ## Documentación
 
-Ver el informe completo en `documents/Informe_MejoraApp_v2.docx`.
+Ver el informe completo en `documents/Informe_MejoraContactos_v2.docx`.
 
 ## Deploy
 
