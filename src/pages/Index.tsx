@@ -64,34 +64,30 @@ const Index = () => {
       {/* Header */}
       <header className="sticky top-0 z-50 border-b bg-primary shadow-sm">
         <div className="container flex h-14 items-center justify-between px-4">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-accent flex items-center justify-center">
-                <Users className="h-4 w-4 text-accent-foreground" />
-              </div>
-              <div>
-                <h1 className="text-sm font-bold tracking-tight text-primary-foreground">MejoraContactos</h1>
-              </div>
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-accent flex items-center justify-center">
+              <Users className="h-4 w-4 text-accent-foreground" />
             </div>
+            <h1 className="text-sm font-bold tracking-tight text-primary-foreground">MejoraContactos</h1>
             <Badge className="text-[10px] hidden sm:inline-flex bg-accent text-accent-foreground border-0 font-semibold">
               AI Pro
             </Badge>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {contacts.length > 0 && (
               <Badge className="text-xs bg-primary-foreground/20 text-primary-foreground border-0">
-                {uniqueCount.toLocaleString()} contactos
+                {uniqueCount.toLocaleString()}
               </Badge>
             )}
+            {/* Admin icon — tiny, semi-transparent, corner placement */}
             <button
               onClick={() => setActiveTab("settings")}
-              className="h-6 w-6 rounded-md flex items-center justify-center text-primary-foreground/30 hover:text-primary-foreground hover:bg-primary-foreground/10 transition-all opacity-40 hover:opacity-100"
+              className="h-7 w-7 rounded-full flex items-center justify-center text-primary-foreground/25 hover:text-primary-foreground hover:bg-primary-foreground/10 transition-all"
               title="Administrador"
               aria-label="Administrador"
             >
               <Settings className="h-3.5 w-3.5" />
             </button>
-            <div className="h-2 w-2 rounded-full bg-success animate-pulse-glow" title="Online" />
           </div>
         </div>
       </header>
