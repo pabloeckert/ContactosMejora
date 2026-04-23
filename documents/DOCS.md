@@ -2,10 +2,12 @@
 
 > **Instrucción:** Cuando el usuario diga **"documentar"**, actualizar este archivo con el estado actual del proyecto, trabajos realizados y pendientes.
 
-**Última actualización:** 2026-04-23  
+**Última actualización:** 2026-04-23 21:21 GMT+8  
 **Versión:** v3.1 (post-security-fixes)  
+**Commit HEAD:** `1f1fef6`  
 **Repo:** [pabloeckert/MejoraContactos](https://github.com/pabloeckert/MejoraContactos)  
-**Live:** https://mejoraok.com/util/mejoracontactos/
+**Live:** https://mejoraok.com/util/mejoracontactos/  
+**Deploy status:** ✅ `1f1fef6` desplegado (2026-04-23 13:18 UTC)
 
 ---
 
@@ -157,9 +159,9 @@ npm run dev    # → http://localhost:8080
 
 ## 8. Registro de Cambios
 
-### v3.1 — 2026-04-23 (Security & Quality Fixes)
+### v3.1 — 2026-04-23 (Security, Quality & Docs)
 
-**Commit:** `2cb5f07`
+**Commits:** `2cb5f07`, `1f1fef6`
 
 | Cambio | Tipo | Archivo |
 |--------|------|---------|
@@ -174,6 +176,9 @@ npm run dev    # → http://localhost:8080
 | API keys extraído a `api-keys.ts` | 🟠 Mejora | `api-keys.ts` |
 | CORS comment de seguridad | 🟠 Mejora | `clean-contacts/index.ts` |
 | HMR warnings 8 → 3 | 🟠 Mejora | múltiples |
+| Docs consolidados en `DOCS.md` | 📚 Docs | `documents/DOCS.md` |
+| README actualizado | 📚 Docs | `README.md` |
+| Docs obsoletos eliminados | 📚 Docs | 3 archivos |
 
 ### v3.0 — 2026-04-22 (Fases 1-8 completadas)
 
