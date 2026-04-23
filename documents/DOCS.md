@@ -2,12 +2,12 @@
 
 > **Instrucción:** Cuando el usuario diga **"documentar"**, actualizar este archivo con el estado actual del proyecto, trabajos realizados y pendientes.
 
-**Última actualización:** 2026-04-23 22:15 GMT+8  
+**Última actualización:** 2026-04-23 22:26 GMT+8  
 **Versión:** v4.0 (hardening + performance)  
-**Commit HEAD:** (pending)  
+**Commit HEAD:** `55e56f6`  
 **Repo:** [pabloeckert/MejoraContactos](https://github.com/pabloeckert/MejoraContactos)  
 **Live:** https://mejoraok.com/util/mejoracontactos/  
-**Deploy status:** ✅ `1462562` desplegado (2026-04-23 13:43 UTC)
+**Deploy status:** ✅ `55e56f6` desplegado (2026-04-23 14:23 UTC)
 
 ---
 
@@ -145,7 +145,7 @@ supabase/functions/
 
 **Pipeline CI/CD:**
 1. Push a `main` → GitHub Actions trigger
-2. `npm ci` + `npm run build`
+2. `npm ci` → `npm test` (150 tests) → `npm run build`
 3. SSH: limpia `assets/` en Hostinger
 4. SCP: sube `dist/` al server
 
@@ -164,6 +164,8 @@ npm run dev    # → http://localhost:8080
 
 ### v4.0 — 2026-04-23 (Etapa 6: Hardening & Performance)
 
+**Commits:** `cf3d09f`, `dce5d41`, `55e56f6`
+
 | Cambio | Tipo | Archivo |
 |--------|------|---------|
 | Tests de componentes: useContactProcessing (16 tests) | 🔴 Testing | `hooks/__tests__/useContactProcessing.test.ts` |
@@ -174,7 +176,8 @@ npm run dev    # → http://localhost:8080
 | Web Worker para batchRuleClean + dedup | 🟠 Performance | `workers/pipeline.worker.ts` |
 | Worker dispatch helper (auto-threshold 10K) | 🟠 Performance | `workers/useWorkerPipeline.ts` |
 | IndexedDB cursor batched + streamContacts() | 🟠 Performance | `lib/db.ts` |
-| xlsx lazy-loaded con import() dinámico | 🟠 Performance | `lib/export-utils.ts` |
+| xlsx lazy-loaded en export-utils.ts | 🟠 Performance | `lib/export-utils.ts` |
+| xlsx lazy-loaded en parsers.ts (parseExcel) | 🟠 Performance | `lib/parsers.ts` |
 | xlsx removido de manualChunks | 🟠 Performance | `vite.config.ts` |
 | aria-labels en tabla virtualizada | 🟡 Accesibilidad | `components/ContactsTable.tsx` |
 | aria-labels en PipelineVisualizer | 🟡 Accesibilidad | `components/PipelineVisualizer.tsx` |
@@ -185,8 +188,10 @@ npm run dev    # → http://localhost:8080
 | Tests totales: 150 (11 archivos) | 🔴 Testing | — |
 
 **Bundle impact:**
-- xlsx: 424KB → lazy-loaded (solo al exportar Excel)
-- pipeline.worker.js: 3.95KB (separate chunk)
+- `index-*.js`: 806 KB → **376 KB** (−53%)
+- `xlsx-*.js`: **429 KB** lazy-loaded (solo al parsear/exportar Excel)
+- `pipeline.worker-*.js`: **3.95 KB** (separate chunk)
+- Sin chunk size warnings
 - 150 tests, 11 archivos, todos pasan
 
 ### v3.3 — 2026-04-23 (Refactor + CORS)
@@ -339,10 +344,10 @@ Commits: `95ab556`, `273c3a3`, `b5f1579`, `8239f22`
 
 | # | Tarea | Detalle | Estado |
 |---|-------|---------|--------|
-| 5.1 | Paginación en IndexedDB | Cursor-based en vez de `getAll()` para 50K+ contactos | ⬜ |
+| 5.1 | Paginación en IndexedDB | Cursor-based en vez de `getAll()` para 50K+ contactos | ✅ (Etapa 6) |
 | 5.2 | Actualizar caniuse-lite | `npx update-browserslist-db@latest` | ✅ |
-| 5.3 | Web Worker para pipeline | Mover limpieza pesada a background thread | ⬜ |
-| 5.4 | Accesibilidad | aria-labels, focus visible, keyboard nav en tabla | ⬜ |
+| 5.3 | Web Worker para pipeline | Mover limpieza pesada a background thread | ✅ (Etapa 6) |
+| 5.4 | Accesibilidad | aria-labels, focus visible, keyboard nav en tabla | ✅ (Etapa 6) |
 
 **Entregable:** App más robusta para datasets grandes.
 
@@ -352,23 +357,28 @@ Commits: `95ab556`, `273c3a3`, `b5f1579`, `8239f22`
 
 | Componente | Estado | Notas |
 |-----------|--------|-------|
-| Parseo multi-formato | ✅ | CSV, Excel, VCF, JSON |
+| Parseo multi-formato | ✅ | CSV, Excel (lazy), VCF, JSON |
 | Mapeo automático | ✅ | Español + inglés |
-| Limpieza por reglas | ✅ | 80%+ de casos |
+| Limpieza por reglas | ✅ | 80%+ de casos, Web Worker para 10K+ |
 | Limpieza por IA | ✅ | 12 proveedores, rotación |
 | Pipeline 3 etapas | ✅ | Limpiar → Verificar → Corregir |
 | Validación semántica | ✅ | Scoring 0-100 por campo |
 | Validación telefónica | ✅ | E.164, WhatsApp, multi-país |
-| Deduplicación | ✅ | O(n) con hash index |
+| Deduplicación | ✅ | O(n) con hash index, Web Worker |
 | Google Contacts | ✅ | Multi-cuenta OAuth |
-| Exportación | ✅ | CSV, Excel, VCF, JSON, JSONL, HTML |
+| Exportación | ✅ | CSV, Excel (lazy), VCF, JSON, JSONL, HTML |
 | Dashboard | ✅ | Métricas + gráficos |
 | Dark mode | ✅ | next-themes |
-| Deploy CI/CD | ✅ | GitHub Actions → Hostinger |
-| Seguridad | ✅ | .env, XSS, CORS documented |
+| Deploy CI/CD | ✅ | GitHub Actions → Hostinger (test + build) |
+| Seguridad | ✅ | .env, XSS, CORS, rate limiting |
 | Tests | ✅ | 150 tests, 11 archivos (lib + hooks + components) |
 | Multi-país UI | ✅ | 21 países con selector |
 | Refactor ProcessingPanel | ✅ | Hook + visualizer, 705→248 líneas |
+| Web Worker | ✅ | batchRuleClean + dedup offloaded (10K+) |
+| IndexedDB batched | ✅ | Cursor-based, streamContacts(), batch ops |
+| Bundle splitting | ✅ | xlsx lazy (429KB), index 376KB |
+| Accesibilidad | ✅ | aria-labels, focus-visible, roles, sr-only |
+| Rate limiting | ✅ | 30 req/min por IP en Edge Function |
 
 ---
 
