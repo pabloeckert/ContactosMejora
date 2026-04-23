@@ -16,6 +16,7 @@ import { clearContacts } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 import { getActiveKeysMulti } from "@/lib/api-keys";
 import { PROVIDERS } from "@/lib/providers";
+import type { CountryCode } from "libphonenumber-js";
 import type {
   ParsedFile,
   ColumnMapping,
@@ -120,6 +121,7 @@ export function ProcessingPanel({ files, onProcessingComplete, onResetAll }: Pro
     aiCleanedCount: 0, rowsPerSecond: 0, startTime: 0, status: "idle",
   });
   const [logs, setLogs] = useState<ProcessingLog[]>([]);
+  const [defaultCountry, setDefaultCountry] = useState<string>("AR");
   const pauseRef = useRef(false);
   const stopRef = useRef(false);
 
@@ -293,7 +295,7 @@ export function ProcessingPanel({ files, onProcessingComplete, onResetAll }: Pro
     setPipelineState(prev => ({ ...prev, mapping: "done", rules: "active" }));
 
     addLog("info", `🔧 Limpieza por reglas de ${rawContacts.length} contactos...`);
-    const { cleaned: ruleCleaned, aiIndices } = batchRuleClean(rawContacts);
+    const { cleaned: ruleCleaned, aiIndices } = batchRuleClean(rawContacts, defaultCountry);
     for (let i = 0; i < rawContacts.length; i++) {
       rawContacts[i].firstName = ruleCleaned[i].firstName;
       rawContacts[i].lastName = ruleCleaned[i].lastName;
@@ -326,7 +328,7 @@ export function ProcessingPanel({ files, onProcessingComplete, onResetAll }: Pro
 
     // Deterministic validation for all contacts
     for (const contact of typedContacts) {
-      const validation = validateContactFields(contact);
+      const validation = validateContactFields(contact, defaultCountry as CountryCode);
       contact.validationScore = validation.overallScore;
       contact.fieldValidations = validation.validations;
       validatedCount++;
@@ -445,6 +447,39 @@ export function ProcessingPanel({ files, onProcessingComplete, onResetAll }: Pro
                 <Zap className="h-3 w-3" />
                 Proveedor único
               </Button>
+            </div>
+
+            {/* Country selector for phone parsing */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground whitespace-nowrap">País (teléfonos):</span>
+              <Select value={defaultCountry} onValueChange={setDefaultCountry}>
+                <SelectTrigger className="h-7 text-xs w-[180px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="AR" className="text-xs">🇦🇷 Argentina (+54)</SelectItem>
+                  <SelectItem value="MX" className="text-xs">🇲🇽 México (+52)</SelectItem>
+                  <SelectItem value="ES" className="text-xs">🇪🇸 España (+34)</SelectItem>
+                  <SelectItem value="CO" className="text-xs">🇨🇴 Colombia (+57)</SelectItem>
+                  <SelectItem value="CL" className="text-xs">🇨🇱 Chile (+56)</SelectItem>
+                  <SelectItem value="PE" className="text-xs">🇵🇪 Perú (+51)</SelectItem>
+                  <SelectItem value="VE" className="text-xs">🇻🇪 Venezuela (+58)</SelectItem>
+                  <SelectItem value="UY" className="text-xs">🇺🇾 Uruguay (+598)</SelectItem>
+                  <SelectItem value="PY" className="text-xs">🇵🇾 Paraguay (+595)</SelectItem>
+                  <SelectItem value="EC" className="text-xs">🇪🇨 Ecuador (+593)</SelectItem>
+                  <SelectItem value="BO" className="text-xs">🇧🇴 Bolivia (+591)</SelectItem>
+                  <SelectItem value="CR" className="text-xs">🇨🇷 Costa Rica (+506)</SelectItem>
+                  <SelectItem value="DO" className="text-xs">🇩🇴 Rep. Dominicana (+1)</SelectItem>
+                  <SelectItem value="GT" className="text-xs">🇬🇹 Guatemala (+502)</SelectItem>
+                  <SelectItem value="US" className="text-xs">🇺🇸 Estados Unidos (+1)</SelectItem>
+                  <SelectItem value="BR" className="text-xs">🇧🇷 Brasil (+55)</SelectItem>
+                  <SelectItem value="GB" className="text-xs">🇬🇧 Reino Unido (+44)</SelectItem>
+                  <SelectItem value="DE" className="text-xs">🇩🇪 Alemania (+49)</SelectItem>
+                  <SelectItem value="FR" className="text-xs">🇫🇷 Francia (+33)</SelectItem>
+                  <SelectItem value="IT" className="text-xs">🇮🇹 Italia (+39)</SelectItem>
+                  <SelectItem value="PT" className="text-xs">🇵🇹 Portugal (+351)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Pipeline: 3 stage selectors */}

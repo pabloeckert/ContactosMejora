@@ -44,4 +44,10 @@ export default defineConfig(({ mode }) => ({
     },
     chunkSizeWarningLimit: 800,
   },
+  test: {
+    globals: true,
+    environment: "jsdom",
+    setupFiles: ["./src/test/setup.ts"],
+    include: ["src/**/*.{test,spec}.{ts,tsx}"],
+  },
 }));

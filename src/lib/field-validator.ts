@@ -6,6 +6,7 @@
 
 import type { FieldValidation, ContactValidationResult, UnifiedContact } from '@/types/contact';
 import { validatePhone } from './phone-validator';
+import type { CountryCode } from 'libphonenumber-js';
 
 // ─── Palabras prohibidas por campo ───
 
@@ -281,12 +282,12 @@ function validateJobTitleField(value: string): FieldValidation {
 
 // ─── Validación de WhatsApp ───
 
-function validateWhatsAppField(value: string): FieldValidation {
+function validateWhatsAppField(value: string, defaultCountry: CountryCode = 'AR'): FieldValidation {
   if (!value) {
     return { field: 'whatsapp', isValid: true, score: 50, reason: 'Teléfono vacío' };
   }
 
-  const validation = validatePhone(value, 'AR');
+  const validation = validatePhone(value, defaultCountry);
 
   if (!validation.isValid) {
     return { field: 'whatsapp', isValid: false, score: 0, reason: 'Número de teléfono inválido' };
@@ -310,11 +311,11 @@ function validateWhatsAppField(value: string): FieldValidation {
 /**
  * Valida todos los campos de un contacto y retorna scores individuales.
  */
-export function validateContactFields(contact: UnifiedContact): ContactValidationResult {
+export function validateContactFields(contact: UnifiedContact, defaultCountry: CountryCode = 'AR'): ContactValidationResult {
   const validations: FieldValidation[] = [
     validateFirstNameField(contact.firstName),
     validateLastNameField(contact.lastName, contact.firstName),
-    validateWhatsAppField(contact.whatsapp),
+    validateWhatsAppField(contact.whatsapp, defaultCountry),
     validateEmailField(contact.email),
     validateCompanyField(contact.company),
     validateJobTitleField(contact.jobTitle),

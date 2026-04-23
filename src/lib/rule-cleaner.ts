@@ -4,6 +4,7 @@
  */
 
 import { validatePhone } from './phone-validator';
+import type { CountryCode } from 'libphonenumber-js';
 
 // Capitalize first letter of each word
 function titleCase(s: string): string {
@@ -38,9 +39,9 @@ function cleanEmail(email: string): string {
  * Clean and validate phone using libphonenumber-js.
  * Replaces the old regex-based approach.
  */
-function cleanPhone(phone: string): string {
+function cleanPhone(phone: string, defaultCountry: string = 'AR'): string {
   if (!phone) return "";
-  const validation = validatePhone(phone, 'AR');
+  const validation = validatePhone(phone, defaultCountry as CountryCode);
   return validation.isValid ? validation.e164 : "";
 }
 
@@ -96,14 +97,14 @@ export function ruleClean(contact: {
   whatsapp?: string;
   company?: string;
   jobTitle?: string;
-}): CleanResult {
+}, defaultCountry: string = 'AR'): CleanResult {
   // Clean raw values
   let firstName = cleanJunk(contact.firstName || "");
   let lastName = cleanJunk(contact.lastName || "");
   const email = cleanEmail(contact.email || "");
 
   // Phone validation with libphonenumber-js
-  const phoneValidation = validatePhone(contact.whatsapp || "", 'AR');
+  const phoneValidation = validatePhone(contact.whatsapp || "", defaultCountry as CountryCode);
   const phone = phoneValidation.isValid ? phoneValidation.e164 : "";
 
   const company = cleanJunk(contact.company || "");
@@ -149,13 +150,14 @@ export function ruleClean(contact: {
  * Batch rule-clean contacts. Returns cleaned contacts and indices that need AI.
  */
 export function batchRuleClean(
-  contacts: Partial<{ firstName: string; lastName: string; email: string; whatsapp: string; company: string; jobTitle: string }>[]
+  contacts: Partial<{ firstName: string; lastName: string; email: string; whatsapp: string; company: string; jobTitle: string }>[],
+  defaultCountry: string = 'AR'
 ): { cleaned: CleanResult[]; aiIndices: number[] } {
   const cleaned: CleanResult[] = [];
   const aiIndices: number[] = [];
 
   for (let i = 0; i < contacts.length; i++) {
-    const result = ruleClean(contacts[i]);
+    const result = ruleClean(contacts[i], defaultCountry);
     cleaned.push(result);
     if (result.needsAI) aiIndices.push(i);
   }

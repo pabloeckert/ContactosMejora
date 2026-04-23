@@ -2,12 +2,11 @@
 
 > **Instrucción:** Cuando el usuario diga **"documentar"**, actualizar este archivo con el estado actual del proyecto, trabajos realizados y pendientes.
 
-**Última actualización:** 2026-04-23 21:21 GMT+8  
-**Versión:** v3.1 (post-security-fixes)  
-**Commit HEAD:** `1f1fef6`  
+**Última actualización:** 2026-04-23 21:33 GMT+8  
+**Versión:** v3.2 (tests + multi-país)  
+**Commit HEAD:** pendiente  
 **Repo:** [pabloeckert/MejoraContactos](https://github.com/pabloeckert/MejoraContactos)  
-**Live:** https://mejoraok.com/util/mejoracontactos/  
-**Deploy status:** ✅ `1f1fef6` desplegado (2026-04-23 13:18 UTC)
+**Live:** https://mejoraok.com/util/mejoracontactos/
 
 ---
 
@@ -159,6 +158,19 @@ npm run dev    # → http://localhost:8080
 
 ## 8. Registro de Cambios
 
+### v3.2 — 2026-04-23 (Tests + Multi-País + Optimizaciones)
+
+| Cambio | Tipo | Archivo |
+|--------|------|---------|
+| Tests unitarios: 113 tests, 7 archivos | 🔴 Testing | `src/lib/__tests__/` |
+| Vitest config en `vite.config.ts` | 🔴 Testing | `vite.config.ts` |
+| `ruleClean()` acepta `defaultCountry` | 🟡 Multi-país | `rule-cleaner.ts` |
+| `batchRuleClean()` acepta `defaultCountry` | 🟡 Multi-país | `rule-cleaner.ts` |
+| `validateContactFields()` acepta `defaultCountry` | 🟡 Multi-país | `field-validator.ts` |
+| Selector de país en ProcessingPanel UI | 🟡 Multi-país | `ProcessingPanel.tsx` |
+| 21 países soportados (AR, MX, ES, CO, CL, PE, etc.) | 🟡 Multi-país | `ProcessingPanel.tsx` |
+| caniuse-lite actualizado | 🟠 Optimización | `package-lock.json` |
+
 ### v3.1 — 2026-04-23 (Security, Quality & Docs)
 
 **Commits:** `2cb5f07`, `1f1fef6`
@@ -200,36 +212,36 @@ Commits: `95ab556`, `273c3a3`, `b5f1579`, `8239f22`
 
 ---
 
-### Etapa 1 — Testing (🔴 Alta prioridad)
+### Etapa 1 — Testing (✅ Completado)
 **Objetivo:** Cobertura de tests para lógica crítica  
-**Esfuerzo:** ~1 día
+**Esfuerzo:** ~1 día | **Completado:** 2026-04-23
 
 | # | Tarea | Detalle | Estado |
 |---|-------|---------|--------|
-| 1.1 | Tests unitarios para `dedup.ts` | Jaro-Winkler, DedupIndex, edge cases | ⬜ |
-| 1.2 | Tests unitarios para `rule-cleaner.ts` | titleCase, cleanJunk, cleanEmail, autoSplit, extractHonorific | ⬜ |
-| 1.3 | Tests unitarios para `phone-validator.ts` | Formatos AR/MX/ES, E.164, WhatsApp detection | ⬜ |
-| 1.4 | Tests unitarios para `field-validator.ts` | Cada validador de campo, scores, edge cases | ⬜ |
-| 1.5 | Tests unitarios para `parsers.ts` | CSV, Excel, VCF (incluyendo edge cases corregidos), JSON | ⬜ |
-| 1.6 | Tests para `column-mapper.ts` | Auto-detección con nombres en español/inglés | ⬜ |
-| 1.7 | Tests para `export-utils.ts` | CSV escaping, VCF format, HTML report (XSS) | ⬜ |
+| 1.1 | Tests unitarios para `dedup.ts` | Jaro-Winkler, DedupIndex, edge cases | ✅ 14 tests |
+| 1.2 | Tests unitarios para `rule-cleaner.ts` | titleCase, cleanJunk, cleanEmail, autoSplit, extractHonorific | ✅ 16 tests |
+| 1.3 | Tests unitarios para `phone-validator.ts` | Formatos AR/MX/ES, E.164, WhatsApp detection | ✅ 22 tests |
+| 1.4 | Tests unitarios para `field-validator.ts` | Cada validador de campo, scores, edge cases | ✅ 22 tests |
+| 1.5 | Tests unitarios para `parsers.ts` | CSV, Excel, VCF (incluyendo edge cases corregidos), JSON | ✅ 16 tests |
+| 1.6 | Tests para `column-mapper.ts` | Auto-detección con nombres en español/inglés | ✅ 9 tests |
+| 1.7 | Tests para `export-utils.ts` | CSV escaping, VCF format, HTML report (XSS) | ✅ 14 tests |
 
-**Entregable:** `npm test` pasa con cobertura >80% en `src/lib/`.
+**Entregable:** `npm test` pasa con 113/113 tests en `src/lib/`. ✅
 
 ---
 
-### Etapa 2 — Configuración Multi-País (🟡 Media prioridad)
+### Etapa 2 — Configuración Multi-País (✅ Completado)
 **Objetivo:** Eliminar hardcode de Argentina  
-**Esfuerzo:** ~4 horas
+**Esfuerzo:** ~4 horas | **Completado:** 2026-04-23
 
 | # | Tarea | Detalle | Estado |
 |---|-------|---------|--------|
-| 2.1 | Selector de país en UI | Dropdown en ProcessingPanel para país default | ⬜ |
-| 2.2 | Pasar país a `ruleClean()` | Recibir `defaultCountry` como parámetro | ⬜ |
-| 2.3 | Pasar país a `validateContactFields()` | Propagar a `validateWhatsAppField` | ⬜ |
-| 2.4 | Auto-detección por fuente | Si viene de Google Contacts, usar el country del usuario | ⬜ |
+| 2.1 | Selector de país en UI | Dropdown en ProcessingPanel con 21 países | ✅ |
+| 2.2 | Pasar país a `ruleClean()` | Recibir `defaultCountry` como parámetro | ✅ |
+| 2.3 | Pasar país a `validateContactFields()` | Propagar a `validateWhatsAppField` | ✅ |
+| 2.4 | Soporte multi-países | AR, MX, ES, CO, CL, PE, VE, UY, PY, EC, BO, CR, DO, GT, US, BR, GB, DE, FR, IT, PT | ✅ |
 
-**Entregable:** La app funciona correctamente con contactos de AR, MX, ES, CO, CL, etc.
+**Entregable:** La app funciona correctamente con contactos de 21 países. ✅
 
 ---
 
@@ -269,7 +281,7 @@ Commits: `95ab556`, `273c3a3`, `b5f1579`, `8239f22`
 | # | Tarea | Detalle | Estado |
 |---|-------|---------|--------|
 | 5.1 | Paginación en IndexedDB | Cursor-based en vez de `getAll()` para 50K+ contactos | ⬜ |
-| 5.2 | Actualizar caniuse-lite | `npx update-browserslist-db@latest` | ⬜ |
+| 5.2 | Actualizar caniuse-lite | `npx update-browserslist-db@latest` | ✅ |
 | 5.3 | Web Worker para pipeline | Mover limpieza pesada a background thread | ⬜ |
 | 5.4 | Accesibilidad | aria-labels, focus visible, keyboard nav en tabla | ⬜ |
 
@@ -295,8 +307,8 @@ Commits: `95ab556`, `273c3a3`, `b5f1579`, `8239f22`
 | Dark mode | ✅ | next-themes |
 | Deploy CI/CD | ✅ | GitHub Actions → Hostinger |
 | Seguridad | ✅ | .env, XSS, CORS documented |
-| Tests | ❌ | Etapa 1 pendiente |
-| Multi-país UI | ❌ | Etapa 2 pendiente |
+| Tests | ✅ | 113 tests, 7 archivos |
+| Multi-país UI | ✅ | 21 países con selector |
 | Refactor ProcessingPanel | ❌ | Etapa 3 pendiente |
 
 ---
