@@ -1,4 +1,6 @@
 RewriteEngine On
+RewriteCond %{HTTP_HOST} ^(www\.)?mejoraok\.com$ [NC]
+RewriteRule ^(.*)$ https://util.mejoraok.com/mejoracontactos/$1 [R=301,L]
 RewriteBase /mejoracontactos/
 RewriteRule ^index\.html$ - [L]
 RewriteCond %{REQUEST_FILENAME} !-f

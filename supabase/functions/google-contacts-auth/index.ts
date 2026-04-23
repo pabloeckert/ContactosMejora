@@ -28,7 +28,7 @@ serve(async (req) => {
   }
 
   try {
-    const { action, code, redirectUri } = await req.json();
+    const { action, code, redirectUri, state } = await req.json();
 
     const clientId = Deno.env.get("GOOGLE_CLIENT_ID");
     const clientSecret = Deno.env.get("GOOGLE_CLIENT_SECRET");
@@ -51,6 +51,7 @@ serve(async (req) => {
         access_type: "offline",
         prompt: "consent",
       });
+      if (state) params.set("state", state);
 
       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
       return respond(true, { authUrl }, corsHeaders);

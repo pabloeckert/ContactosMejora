@@ -39,7 +39,7 @@ npm run build   # build producción
 
 Push a `main` → GitHub Actions → build → SCP a Hostinger (automático).
 
-**Producción:** https://mejoraok.com/util/mejoracontactos/
+**Producción:** https://util.mejoraok.com/mejoracontactos/
 
 ## Documentación
 

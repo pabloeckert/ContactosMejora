@@ -39,7 +39,8 @@ const ACCOUNT_COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 const MAX_ACCOUNTS = 5;
 const STORAGE_KEY = 'mejoracontactos_google_accounts';
 
-const REDIRECT_URI = typeof window !== "undefined" ? window.location.origin : "";
+const REDIRECT_URI =
+  typeof window !== "undefined" ? new URL(import.meta.env.BASE_URL, window.location.origin).toString() : "";
 
 // Load accounts from localStorage
 function loadAccounts(): GoogleAccount[] {

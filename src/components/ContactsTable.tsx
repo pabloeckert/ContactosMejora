@@ -89,7 +89,7 @@ export function ContactsTable({ contacts, onUpdateContact, onDeleteContact }: Co
         </CardHeader>
         <CardContent className="p-0">
           <TooltipProvider>
-            <div role="grid" aria-label="Tabla de contactos" className="grid grid-cols-[40px_1fr_1fr_1fr_1fr_1fr_1fr_52px] gap-1 px-3 py-2 text-xs font-medium text-muted-foreground border-b bg-muted/30" role="row">
+            <div role="grid" aria-label="Tabla de contactos" className="grid grid-cols-[40px_1fr_1fr_1fr_1fr_1fr_1fr_52px] gap-1 px-3 py-2 text-xs font-medium text-muted-foreground border-b bg-muted/30">
               <span className="text-center" role="columnheader">Score</span>
               <span role="columnheader">Nombre</span>
               <span role="columnheader">Apellido</span>
