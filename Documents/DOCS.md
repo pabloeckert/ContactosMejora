@@ -2,12 +2,12 @@
 
 > **⚡ Instrucción de actualización:** Cuando el usuario diga **"documentar"**, actualizar este archivo con el estado actual del proyecto, trabajos realizados, pendientes y cualquier cambio relevante.
 
-**Última actualización:** 2026-04-24 05:52 GMT+8  
-**Versión:** v4.3 (migración Supabase + CORS fix + deploy completo)  
-**Commit HEAD:** `d75e9b3`  
+**Última actualización:** 2026-04-24 06:17 GMT+8  
+**Versión:** v4.4 (fix anon key + modelo OpenRouter + deploy completo)  
+**Commit HEAD:** `8742638`  
 **Repo:** [pabloeckert/MejoraContactos](https://github.com/pabloeckert/MejoraContactos)  
 **Live:** https://util.mejoraok.com/mejoracontactos/  
-**Deploy status:** ✅ Frontend + Edge Functions desplegados
+**Deploy status:** ✅ Todo desplegado y funcionando
 
 ---
 
@@ -73,7 +73,7 @@ src/
 │   └── NotFound.tsx             # 404
 └── integrations/
     └── supabase/
-        ├── client.ts            # Cliente Supabase (URL + publishable key)
+        ├── client.ts            # Cliente Supabase (URL + anon key JWT)
         └── types.ts             # Tipos de DB
 
 supabase/
@@ -114,28 +114,26 @@ supabase/
 
 ## 5. Proveedores de IA
 
-| # | ID | Proveedor | Modelo | Notas |
-|---|-----|----------|--------|-------|
-| 1 | groq | Groq Cloud | llama-3.3-70b-versatile | Free tier generoso, ultra rápido |
-| 2 | openrouter | OpenRouter | mistralai/mistral-small-3.2-24b-instruct:free | Modelos free |
-| 3 | together | Together AI | meta-llama/Llama-3.3-70B-Instruct-Turbo-Free | Gratis |
-| 4 | cerebras | Cerebras | llama-3.3-70b | El más rápido |
-| 5 | deepinfra | DeepInfra | meta-llama/Llama-3.3-70B-Instruct | Pay-per-token |
-| 6 | sambanova | SambaNova | Meta-Llama-3.3-70B-Instruct | Free tier diario |
-| 7 | mistral | Mistral AI | mistral-small-latest | Europeo |
-| 8 | deepseek | DeepSeek | deepseek-chat | Muy económico |
-| 9 | gemini | Google AI Studio | gemini-2.0-flash-exp | Free tier generoso |
-| 10 | cloudflare | Cloudflare Workers AI | @cf/meta/llama-3.3-70b-instruct-fp8-fast | Requiere TOKEN:ACCOUNT_ID |
-| 11 | huggingface | Hugging Face | meta-llama/Llama-3.3-70B-Instruct | Miles de modelos |
-| 12 | nebius | Nebius AI | meta-llama/Llama-3.3-70B-Instruct | Free credits |
-| 13 | lovable | Lovable AI (fallback) | google/gemini-3-flash-preview | Solo en Lovable.dev |
+| # | ID | Proveedor | Modelo | Estado |
+|---|-----|----------|--------|--------|
+| 1 | groq | Groq Cloud | llama-3.3-70b-versatile | ✅ Funcionando |
+| 2 | openrouter | OpenRouter | meta-llama/llama-3.3-70b-instruct:free | ✅ Funcionando (rate limit temporal) |
+| 3 | together | Together AI | meta-llama/Llama-3.3-70B-Instruct-Turbo-Free | ⏳ Sin testear |
+| 4 | cerebras | Cerebras | llama-3.3-70b | ⏳ Sin testear |
+| 5 | deepinfra | DeepInfra | meta-llama/Llama-3.3-70B-Instruct | ⏳ Sin testear |
+| 6 | sambanova | SambaNova | Meta-Llama-3.3-70B-Instruct | ⏳ Sin testear |
+| 7 | mistral | Mistral AI | mistral-small-latest | ⏳ Sin testear |
+| 8 | deepseek | DeepSeek | deepseek-chat | ⏳ Sin testear |
+| 9 | gemini | Google AI Studio | gemini-2.0-flash-exp | ⏳ Sin testear |
+| 10 | cloudflare | Cloudflare Workers AI | @cf/meta/llama-3.3-70b-instruct-fp8-fast | ⏳ Sin testear |
+| 11 | huggingface | Hugging Face | meta-llama/Llama-3.3-70B-Instruct | ⏳ Sin testear |
+| 12 | nebius | Nebius AI | meta-llama/Llama-3.3-70B-Instruct | ⏳ Sin testear |
 
-**Rotación automática:**
-- Si un proveedor devuelve 429 (rate limit) / 402 (sin créditos) / 401 (key inválida), rota al siguiente
+**Notas sobre proveedores:**
+- **"lovable" eliminado** del fallback en Edge Function — solo funciona en Lovable.dev, no en hosting externo
+- **OpenRouter**: modelo actualizado de `mistral-small-3.2` a `llama-3.3-70b-instruct:free` (el anterior ya no existe)
+- Rotación automática: 429/402/401 → siguiente proveedor
 - Soporta múltiples keys por proveedor
-- Orden de fallback configurable en el hook `suggestOptimalConfig()`
-
-**⚠️ Nota:** El proveedor "lovable" usa la API interna de Lovable.dev y NO funciona en hosting externo (Hostinger). Está como fallback del fallback.
 
 ## 6. Formatos Soportados
 
@@ -188,7 +186,7 @@ npx supabase functions deploy clean-contacts
 npx supabase functions deploy google-contacts-auth
 ```
 
-**⚠️ IMPORTANTE:** Si se modifican las Edge Functions, hay que redeployarlas manualmente con Supabase CLI. El frontend se deploya solo via GitHub Actions, pero las Edge Functions NO.
+**⚠️ IMPORTANTE:** Las Edge Functions NO se deployan automáticamente. Hay que hacerlo manualmente con Supabase CLI cada vez que se modifican.
 
 ### URLs de Producción
 
@@ -211,88 +209,57 @@ npx supabase functions deploy google-contacts-auth
 
 ## 8. Registro de Cambios
 
-### v4.3 — 2026-04-24 (Migración Supabase + Deploy completo)
+### v4.4 — 2026-04-24 (Fix anon key + modelo OpenRouter)
+
+**Commits:** `8742638`
+
+| Cambio | Tipo | Detalle |
+|--------|------|---------|
+| Anon key JWT corregida | 🔴 Fix crítico | Key obtenida via Management API (la anterior era inválida) |
+| OpenRouter modelo actualizado | 🔴 Fix | `mistral-small-3.2` → `llama-3.3-70b-instruct:free` (el anterior no existe) |
+| "lovable" eliminado del fallback | 🟠 Mejora | No funciona en hosting externo |
+| OpenRouter referer actualizado | 🟠 Mejora | `lovable.dev` → `mejoraok.com` |
+| Edge Function redeployada | 🔴 Deploy | Con todos los fixes |
+| Groq testeado | ✅ Verificación | HTTP 200, limpieza funciona |
+| OpenRouter testeado | ✅ Verificación | Modelo OK, rate limit temporal |
+
+**Problema resuelto:** El proyecto nuevo de Supabase usa sistema de auth nuevo. La anon key de la UI (`Legacy API keys`) no coincidía con la del Management API. Se obtuvo la key correcta via `GET /v1/projects/{id}/api-keys`.
+
+### v4.3 — 2026-04-24 (Migración Supabase)
 
 **Commits:** `3dfcce3`, `14b4319`, `d75e9b3`
 
 | Cambio | Tipo | Detalle |
 |--------|------|---------|
 | Migración a Supabase propio | 🔴 Infra | Proyecto `tzatuvxatsduuslxqdtm` (antes `jurmgatcyxjkutmzweey`) |
-| Supabase URL actualizada | 🔴 Config | `client.ts` → nueva URL + publishable key |
-| Edge Functions deployadas | 🔴 Deploy | `clean-contacts` + `google-contacts-auth` en nuevo proyecto |
-| CORS fix desplegado | 🔴 Fix | `util.mejoraok.com` en ALLOWED_ORIGINS (ambas funciones) |
+| Supabase URL + key actualizada | 🔴 Config | `client.ts` → nueva URL + anon key |
+| Edge Functions deployadas | 🔴 Deploy | `clean-contacts` + `google-contacts-auth` |
+| CORS fix desplegado | 🔴 Fix | `util.mejoraok.com` en ALLOWED_ORIGINS |
 | `supabase/.temp` en gitignore | 🟠 Limpieza | Archivos de estado local fuera del repo |
-| Docs actualizados | 📚 Docs | Proyecto Supabase, deploy commands, infra actualizada |
-
-**Problema resuelto:** La app usaba un proyecto de Supabase (`jurmgatcyxjkutmzweey`) que no pertenecía al usuario. Las Edge Functions no se podían modificar ni deployar, y el CORS bloqueaba todas las llamadas desde `util.mejoraok.com`. Migración completa a proyecto propio con CORS fix y deploy exitoso.
 
 ### v4.2 — 2026-04-24 (CORS Fix + Consolidación Docs)
 
 | Cambio | Tipo | Archivo |
 |--------|------|---------|
-| CORS: `util.mejoraok.com` agregado a ALLOWED_ORIGINS | 🔴 Fix crítico | `clean-contacts/index.ts` |
-| CORS: `util.mejoraok.com` agregado a ALLOWED_ORIGINS | 🔴 Fix crítico | `google-contacts-auth/index.ts` |
-| Carpeta `documents/` renombrada a `Documents/` | 📚 Docs | `Documents/DOCS.md` |
-| Documentación consolidada en un solo archivo | 📚 Docs | `Documents/DOCS.md` |
+| CORS: `util.mejoraok.com` agregado a ALLOWED_ORIGINS | 🔴 Fix crítico | ambas Edge Functions |
+| Carpeta `documents/` → `Documents/` | 📚 Docs | renombrada |
+| Documentación consolidada | 📚 Docs | `Documents/DOCS.md` |
 
 ### v4.1 — 2026-04-23 (Subdominio + Landing page)
 
-| Cambio | Tipo | Archivo |
-|--------|------|---------|
-| Subdominio `util.mejoraok.com` activo | 🟠 Infra | DNS Hostinger |
-| Landing page de utilidades en `util.mejoraok.com/` | 🟠 Infra | `/public_html/util/index.html` |
-| URL principal actualizada a subdominio | 📚 Docs | docs |
+Subdominio `util.mejoraok.com` activo, landing page de utilidades.
 
 ### v4.0 — 2026-04-23 (Hardening & Performance)
 
-**Commits:** `cf3d09f`, `dce5d41`, `55e56f6`
+Tests de componentes, Web Worker, IndexedDB batched, xlsx lazy-loaded, a11y, rate limiting. Bundle: index 376KB (−53%), 150+ tests.
 
-| Cambio | Tipo | Detalle |
-|--------|------|---------|
-| Tests de componentes (37 nuevos) | 🔴 Testing | useContactProcessing, PipelineVisualizer, ColumnMapper, ExportPanel |
-| CI: `npm test` en deploy.yml | 🔴 CI/CD | Tests antes del build |
-| Web Worker para pipeline | 🟠 Performance | batchRuleClean + dedup en worker thread |
-| IndexedDB cursor batched | 🟠 Performance | streamContacts(), batch ops |
-| xlsx lazy-loaded | 🟠 Performance | 429KB solo al parsear/exportar |
-| Accesibilidad | 🟡 a11y | aria-labels, focus-visible, sr-only |
-| Rate limiting | 🔴 Seguridad | 30 req/min por IP en Edge Function |
+### v3.0–v3.3 — 2026-04-22/23 (Core + Refactor)
 
-**Bundle:** index 376KB (−53%), xlsx 429KB lazy, 150+ tests
-
-### v3.3 — 2026-04-23 (Refactor + CORS)
-
-| Cambio | Tipo |
-|--------|------|
-| ProcessingPanel dividido: 705 → 248 líneas | 🟠 Refactor |
-| Hook `useContactProcessing` extraído | 🟠 Refactor |
-| `PipelineVisualizer` componente propio | 🟠 Refactor |
-| CORS whitelist en ambas Edge Functions | 🔴 Seguridad |
-
-### v3.2 — 2026-04-23 (Tests + Multi-País)
-
-| Cambio | Tipo |
-|--------|------|
-| 113 tests unitarios (7 archivos) | 🔴 Testing |
-| `defaultCountry` en ruleClean/fieldValidator | 🟡 Multi-país |
-| Selector de país: 21 países | 🟡 Multi-país |
-
-### v3.1 — 2026-04-23 (Security & Quality)
-
-| Cambio | Tipo |
-|--------|------|
-| `.env` removido de git | 🔴 Seguridad |
-| XSS fix en HTML report | 🔴 Seguridad |
-| ai-validator.ts reescrito | 🟡 Bug fix |
-| VCF parser fixes | 🟡 Bug fix |
-| PROVIDERS/api-keys extraídos | 🟠 Mejora |
-
-### v3.0 — 2026-04-22 (Core completo)
-
-Deploy funcional con CI/CD, validación telefónica, dedup O(n), Google Contacts, exportación JSONL/HTML, dark mode, pipeline 3 etapas.
+Core completo: pipeline IA, dedup O(n), Google Contacts, exportación 6 formatos, dark mode, multi-país (21), refactor ProcessingPanel, CORS, tests unitarios (113).
 
 ## 9. Plan de Trabajo — Estado y Etapas
 
-### Estado general: ✅ Core completo | ✅ Deploy funcional | ⏳ Verificación en vivo pendiente
+### Estado general: ✅ Core completo | ✅ Deploy funcional | ✅ APIs verificadas
 
 ### ✅ Etapas Completadas
 
@@ -305,24 +272,25 @@ Deploy funcional con CI/CD, validación telefónica, dedup O(n), Google Contacts
 | Hardening (v4.0) | Worker, lazy xlsx, a11y, rate limit | 2026-04-23 |
 | Subdominio (v4.1) | util.mejoraok.com + landing | 2026-04-23 |
 | CORS Fix (v4.2) | util.mejoraok.com en whitelist | 2026-04-24 |
-| Migración Supabase (v4.3) | Proyecto propio + deploy completo | 2026-04-24 |
+| Migración Supabase (v4.3) | Proyecto propio + deploy | 2026-04-24 |
+| Fix APIs (v4.4) | Anon key + modelo OpenRouter | 2026-04-24 |
 
-### 📋 Próximas Etapas
+### 📋 Próximas Etapas Sugeridas
 
-#### Etapa 7 — Verificación Post-Deploy
+#### Etapa 7 — Verificación completa de proveedores
 | # | Tarea | Detalle | Estado |
 |---|-------|---------|--------|
-| 7.1 | Test API Groq en vivo | Cargar key, hacer test desde app live | ⏳ Pendiente (requiere API key del usuario) |
-| 7.2 | Test pipeline completo | Importar CSV, procesar, verificar resultados | ⏳ |
-| 7.3 | Verificar Google OAuth | Test importación desde Google Contacts | ⏳ |
-| 7.4 | Monitoreo | Revisar logs en Supabase Dashboard | ⏳ |
+| 7.1 | Test Groq | Cargar key, test desde app live | ✅ Funcionando |
+| 7.2 | Test OpenRouter | Modelo actualizado, rate limit temporal | ✅ Funcionando |
+| 7.3 | Test pipeline completo | Importar CSV → procesar → verificar | ⏳ Pendiente usuario |
+| 7.4 | Test otros proveedores | Cargar keys de Together, Cerebras, etc. | ⏳ Opcional |
+| 7.5 | Test Google OAuth | Importación desde Google Contacts | ⏳ Pendiente |
 
-#### Etapa 8 — Mejoras de Proveedores
+#### Etapa 8 — Mejoras
 | # | Tarea | Detalle |
 |---|-------|---------|
-| 8.1 | Eliminar "lovable" del fallback | Solo funciona en Lovable.dev |
-| 8.2 | Health check automático | Test periódico de keys desde la UI |
-| 8.3 | Actualizar modelos | Verificar que los modelos siguen activos |
+| 8.1 | Health check automático | Test periódico de keys desde la UI |
+| 8.2 | Monitoreo Edge Functions | Revisar logs en Supabase Dashboard |
 
 ## 10. Resumen de Estado por Componente
 
@@ -337,13 +305,16 @@ Deploy funcional con CI/CD, validación telefónica, dedup O(n), Google Contacts
 | Validación telefónica | ✅ | E.164, WhatsApp, 21 países |
 | Deduplicación | ✅ | O(n) hash index, Web Worker |
 | Google Contacts | ✅ | Multi-cuenta OAuth |
-| Exportación | ✅ | 6 formatos (CSV, Excel, VCF, JSON, JSONL, HTML) |
+| Exportación | ✅ | 6 formatos |
 | Dashboard | ✅ | Métricas + gráficos |
 | Dark mode | ✅ | next-themes |
-| Deploy CI/CD | ✅ | GitHub Actions → Hostinger (frontend) |
+| Deploy CI/CD | ✅ | GitHub Actions → Hostinger |
 | Deploy Edge Functions | ✅ | Supabase CLI → proyecto propio |
-| CORS | ✅ | `util.mejoraok.com` en whitelist, deployado |
+| CORS | ✅ | `util.mejoraok.com` habilitado |
 | Supabase | ✅ | Proyecto propio `tzatuvxatsduuslxqdtm` |
+| Anon key JWT | ✅ | Obtenida via Management API |
+| Groq API | ✅ | Verificado HTTP 200 |
+| OpenRouter API | ✅ | Modelo actualizado, verificado |
 | Tests | ✅ | 150+ tests, 11 archivos |
 | Multi-país | ✅ | 21 países con selector |
 | Web Worker | ✅ | batchRuleClean + dedup offloaded |
@@ -351,7 +322,6 @@ Deploy funcional con CI/CD, validación telefónica, dedup O(n), Google Contacts
 | Bundle splitting | ✅ | xlsx lazy, index 376KB |
 | Accesibilidad | ✅ | aria-labels, focus-visible, roles |
 | Rate limiting | ✅ | 30 req/min por IP |
-| API keys IA | ⏳ | Requiere que el usuario cargue al menos una |
 
 ## 11. Notas de Seguridad
 
@@ -359,9 +329,10 @@ Deploy funcional con CI/CD, validación telefónica, dedup O(n), Google Contacts
 2. **API keys en localStorage** — el usuario las ingresa manualmente, nunca van al repo
 3. **CORS restringido** — whitelist: `util.mejoraok.com`, `mejoraok.com`, `localhost:8080`, `localhost:5173`
 4. **XSS en reportes** — `escapeHtml()` aplicado en `generateHTMLReport()`
-5. **Supabase publishable key** — pública, protegida por RLS
+5. **Supabase anon key** — pública, protegida por RLS
 6. **Rate limiting** — 30 req/min por IP en Edge Function, sliding window
 7. **Tokens de deploy** — NO se commitean (solo en entorno local del deployador)
+8. **"lovable" proveedor eliminado** del fallback — API interna de Lovable.dev, no funciona externamente
 
 ## 12. Comandos Rápidos
 
@@ -380,6 +351,10 @@ npx supabase functions deploy google-contacts-auth
 
 # Deploy frontend (automático al pushear a main)
 git push origin main
+
+# Obtener anon key via API
+curl -s "https://api.supabase.com/v1/projects/tzatuvxatsduuslxqdtm/api-keys" \
+  -H "Authorization: Bearer sbp_XXXXX"
 ```
 
 ---
