@@ -4,7 +4,7 @@ import type { Database } from './types';
 
 const DEFAULT_SUPABASE_URL = 'https://tzatuvxatsduuslxqdtm.supabase.co';
 const DEFAULT_SUPABASE_PUBLISHABLE_KEY =
-  'sb_publishable_Gb4Q9tCeb_7DWjizjJF6sw_dYyGbhr4';
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6YXR1dnhhdHNkdXVzbHhxZHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5ODA0NzgsImV4cCI6MjA5MjU1NjQ3OH0.3Iknfd0YMTrz07YU_nb50m13QLkeioSo-f-DqKJwp3s';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY =

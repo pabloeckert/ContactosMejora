@@ -15,7 +15,7 @@ export interface ProviderInfo {
 
 export const PROVIDERS: ProviderInfo[] = [
   { id: "groq", name: "Groq Cloud", url: "https://api.groq.com/openai/v1/chat/completions", signupUrl: "https://console.groq.com/keys", freeModels: "llama-3.3-70b-versatile", icon: "⚡", notes: "Free tier muy generoso, ultra rápido" },
-  { id: "openrouter", name: "OpenRouter", url: "https://openrouter.ai/api/v1/chat/completions", signupUrl: "https://openrouter.ai/keys", freeModels: "mistralai/mistral-small-3.2-24b-instruct:free", icon: "🌐", notes: "Acceso a múltiples modelos free" },
+  { id: "openrouter", name: "OpenRouter", url: "https://openrouter.ai/api/v1/chat/completions", signupUrl: "https://openrouter.ai/keys", freeModels: "meta-llama/llama-3.3-70b-instruct:free", icon: "🌐", notes: "Acceso a múltiples modelos free" },
   { id: "together", name: "Together AI", url: "https://api.together.xyz/v1/chat/completions", signupUrl: "https://api.together.ai/settings/api-keys", freeModels: "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free", icon: "🤝", notes: "Llama 3.3 70B gratis" },
   { id: "cerebras", name: "Cerebras", url: "https://api.cerebras.ai/v1/chat/completions", signupUrl: "https://cloud.cerebras.ai/", freeModels: "llama-3.3-70b", icon: "🧠", notes: "El más rápido del mercado" },
   { id: "deepinfra", name: "DeepInfra", url: "https://api.deepinfra.com/v1/openai/chat/completions", signupUrl: "https://deepinfra.com/dash/api_keys", freeModels: "meta-llama/Llama-3.3-70B-Instruct", icon: "🔥", notes: "Pay-per-token económico" },

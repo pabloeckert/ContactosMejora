@@ -93,7 +93,7 @@ function buildConfig(provider: Exclude<Provider, "pipeline">, apiKey: string): P
     case "groq":
       return { url: "https://api.groq.com/openai/v1/chat/completions", apiKey, model: "llama-3.3-70b-versatile", name: "Groq (Llama 3.3 70B)" };
     case "openrouter":
-      return { url: "https://openrouter.ai/api/v1/chat/completions", apiKey, model: "mistralai/mistral-small-3.2-24b-instruct:free", name: "OpenRouter (Mistral Small Free)", extraHeaders: { "HTTP-Referer": "https://lovable.dev" } };
+      return { url: "https://openrouter.ai/api/v1/chat/completions", apiKey, model: "meta-llama/llama-3.3-70b-instruct:free", name: "OpenRouter (Llama 3.3 Free)", extraHeaders: { "HTTP-Referer": "https://mejoraok.com" } };
     case "together":
       return { url: "https://api.together.xyz/v1/chat/completions", apiKey, model: "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free", name: "Together AI (Llama 3.3)" };
     case "cerebras":
@@ -228,7 +228,7 @@ async function callAIWithFallback(
   const allProviders: Exclude<Provider, "pipeline">[] = [
     "groq", "openrouter", "gemini", "cerebras", "together",
     "deepinfra", "sambanova", "mistral", "deepseek",
-    "cloudflare", "huggingface", "nebius", "lovable",
+    "cloudflare", "huggingface", "nebius",
   ];
 
   const order: Exclude<Provider, "pipeline">[] = [primaryProvider];
