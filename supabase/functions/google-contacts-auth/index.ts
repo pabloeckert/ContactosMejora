@@ -1,12 +1,20 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = [
+  "https://mejoraok.com",
+  "http://localhost:8080",
+  "http://localhost:5173",
+];
 
-function respond(ok: boolean, payload: Record<string, unknown>): Response {
+function getCorsHeaders(origin: string | null): Record<string, string> {
+  const allowed = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowed,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+}
+
+function respond(ok: boolean, payload: Record<string, unknown>, corsHeaders: Record<string, string>): Response {
   return new Response(JSON.stringify({ ok, ...payload }), {
     status: 200, // always 200 so client SDK doesn't swallow the body
     headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -14,6 +22,7 @@ function respond(ok: boolean, payload: Record<string, unknown>): Response {
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req.headers.get("origin"));
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -25,7 +34,7 @@ serve(async (req) => {
     const clientSecret = Deno.env.get("GOOGLE_CLIENT_SECRET");
 
     if (!clientId || !clientSecret) {
-      return respond(false, { error: "Google OAuth credentials not configured" });
+      return respond(false, { error: "Google OAuth credentials not configured" }, corsHeaders);
     }
 
     // Action: get auth URL
@@ -44,13 +53,13 @@ serve(async (req) => {
       });
 
       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
-      return respond(true, { authUrl });
+      return respond(true, { authUrl }, corsHeaders);
     }
 
     // Action: exchange code for token
     if (action === "exchange") {
       if (!code) {
-        return respond(false, { error: "No code provided" });
+        return respond(false, { error: "No code provided" }, corsHeaders);
       }
 
       console.log("Exchanging code, redirectUri:", redirectUri);
@@ -73,21 +82,21 @@ serve(async (req) => {
         return respond(false, {
           error: tokenData.error_description || tokenData.error || "Token exchange failed",
           details: tokenData,
-        });
+        }, corsHeaders);
       }
 
       return respond(true, {
         access_token: tokenData.access_token,
         expires_in: tokenData.expires_in,
         refresh_token: tokenData.refresh_token,
-      });
+      }, corsHeaders);
     }
 
     // Action: fetch contacts
     if (action === "fetch_contacts") {
       const accessToken = code; // reusing 'code' field for access_token
       if (!accessToken) {
-        return respond(false, { error: "No access token" });
+        return respond(false, { error: "No access token" }, corsHeaders);
       }
 
       const allContacts: any[] = [];
@@ -109,7 +118,7 @@ serve(async (req) => {
 
         if (!res.ok) {
           const err = await res.text();
-          return respond(false, { error: `Google API error: ${err}` });
+          return respond(false, { error: `Google API error: ${err}` }, corsHeaders);
         }
 
         const data = await res.json();
@@ -139,14 +148,14 @@ serve(async (req) => {
       return respond(true, {
         contacts: allContacts,
         total: allContacts.length,
-      });
+      }, corsHeaders);
     }
 
-    return respond(false, { error: "Invalid action" });
+    return respond(false, { error: "Invalid action" }, corsHeaders);
   } catch (e) {
     console.error("google-contacts-auth error:", e);
     return respond(false, {
       error: e instanceof Error ? e.message : "Unknown error",
-    });
+    }, corsHeaders);
   }
 });

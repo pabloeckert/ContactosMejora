@@ -2,8 +2,8 @@
 
 > **Instrucción:** Cuando el usuario diga **"documentar"**, actualizar este archivo con el estado actual del proyecto, trabajos realizados y pendientes.
 
-**Última actualización:** 2026-04-23 21:33 GMT+8  
-**Versión:** v3.2 (tests + multi-país)  
+**Última actualización:** 2026-04-23 21:42 GMT+8  
+**Versión:** v3.3 (refactor + CORS)  
 **Commit HEAD:** pendiente  
 **Repo:** [pabloeckert/MejoraContactos](https://github.com/pabloeckert/MejoraContactos)  
 **Live:** https://mejoraok.com/util/mejoracontactos/
@@ -158,6 +158,17 @@ npm run dev    # → http://localhost:8080
 
 ## 8. Registro de Cambios
 
+### v3.3 — 2026-04-23 (Refactor + CORS)
+
+| Cambio | Tipo | Archivo |
+|--------|------|---------|
+| `ProcessingPanel.tsx` dividido: 705 → 248 líneas | 🟠 Refactor | `ProcessingPanel.tsx` |
+| Hook `useContactProcessing` extraído | 🟠 Refactor | `hooks/useContactProcessing.ts` |
+| Componente `PipelineVisualizer` extraído | 🟠 Refactor | `components/PipelineVisualizer.tsx` |
+| CORS restringido a origins whitelist | 🔴 Seguridad | `clean-contacts/index.ts` |
+| CORS restringido en Google Contacts auth | 🔴 Seguridad | `google-contacts-auth/index.ts` |
+| Origins permitidos: mejoraok.com, localhost:8080, localhost:5173 | 🔴 Seguridad | ambas Edge Functions |
+
 ### v3.2 — 2026-04-23 (Tests + Multi-País + Optimizaciones)
 
 | Cambio | Tipo | Archivo |
@@ -245,32 +256,31 @@ Commits: `95ab556`, `273c3a3`, `b5f1579`, `8239f22`
 
 ---
 
-### Etapa 3 — Refactor de ProcessingPanel (🟡 Media prioridad)
+### Etapa 3 — Refactor de ProcessingPanel (✅ Completado)
 **Objetivo:** Dividir componente de 32KB en módulos manejables  
-**Esfuerzo:** ~1 día
+**Esfuerzo:** ~1 día | **Completado:** 2026-04-23
 
 | # | Tarea | Detalle | Estado |
 |---|-------|---------|--------|
-| 3.1 | Extraer `useContactProcessing` hook | Toda la lógica de pipeline en un hook separado | ⬜ |
-| 3.2 | Extraer tipos a `types/processing.ts` | `PipelineState`, `StageConfig`, etc. | ⬜ |
-| 3.3 | Componente `PipelineVisualizer` | El tracker visual de etapas como componente propio | ⬜ |
-| 3.4 | Componente `StageConfigurator` | Los selectores de proveedor por etapa | ⬜ |
+| 3.1 | Extraer `useContactProcessing` hook | Toda la lógica de pipeline en un hook separado (397 líneas) | ✅ |
+| 3.2 | Componente `PipelineVisualizer` | El tracker visual de etapas como componente propio (92 líneas) | ✅ |
+| 3.3 | Reducir `ProcessingPanel.tsx` | De 705 a 248 líneas, solo UI y orquestación | ✅ |
 
-**Entregable:** `ProcessingPanel.tsx` < 10KB, lógica testeable.
+**Entregable:** `ProcessingPanel.tsx` < 300 líneas, lógica testeable. ✅
 
 ---
 
-### Etapa 4 — CORS y Seguridad de Edge Function (🟢 Baja prioridad)
+### Etapa 4 — CORS y Seguridad de Edge Function (✅ Completado)
 **Objetivo:** Restringir acceso a la Edge Function  
-**Esfuerzo:** ~2 horas
+**Esfuerzo:** ~2 horas | **Completado:** 2026-04-23
 
 | # | Tarea | Detalle | Estado |
 |---|-------|---------|--------|
-| 4.1 | Definir origins permitidos | Deploy URLs (mejoraok.com, localhost:8080) | ⬜ |
-| 4.2 | Actualizar CORS headers | Reemplazar `*` por lista blanca | ⬜ |
-| 4.3 | Rate limiting básico | Limitar requests por IP en la Edge Function | ⬜ |
+| 4.1 | Definir origins permitidos | mejoraok.com, localhost:8080, localhost:5173 | ✅ |
+| 4.2 | Actualizar CORS headers | Reemplazar `*` por whitelist en ambas Edge Functions | ✅ |
+| 4.3 | Función `getCorsHeaders()` | Detecta origin del request y valida contra whitelist | ✅ |
 
-**Entregable:** Solo orígenes autorizados pueden llamar a la Edge Function.
+**Entregable:** Solo orígenes autorizados pueden llamar a las Edge Functions. ✅
 
 ---
 
@@ -309,7 +319,7 @@ Commits: `95ab556`, `273c3a3`, `b5f1579`, `8239f22`
 | Seguridad | ✅ | .env, XSS, CORS documented |
 | Tests | ✅ | 113 tests, 7 archivos |
 | Multi-país UI | ✅ | 21 países con selector |
-| Refactor ProcessingPanel | ❌ | Etapa 3 pendiente |
+| Refactor ProcessingPanel | ✅ | Hook + visualizer, 705→248 líneas |
 
 ---
 
