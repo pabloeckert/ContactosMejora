@@ -60,7 +60,7 @@ export function ContactsTable({ contacts, onUpdateContact, onDeleteContact }: Co
       <div className="flex flex-col sm:flex-row gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar contactos..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9" />
+          <Input placeholder="Buscar contactos..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9" aria-label="Buscar contactos" />
         </div>
         <Select value={filterType} onValueChange={setFilterType}>
           <SelectTrigger className="w-[180px] h-9 text-xs">
@@ -89,17 +89,17 @@ export function ContactsTable({ contacts, onUpdateContact, onDeleteContact }: Co
         </CardHeader>
         <CardContent className="p-0">
           <TooltipProvider>
-            <div className="grid grid-cols-[40px_1fr_1fr_1fr_1fr_1fr_1fr_52px] gap-1 px-3 py-2 text-xs font-medium text-muted-foreground border-b bg-muted/30">
-              <span className="text-center">Score</span>
-              <span>Nombre</span>
-              <span>Apellido</span>
-              <span>WhatsApp</span>
-              <span>Empresa</span>
-              <span>Cargo</span>
-              <span>Email</span>
-              <span></span>
+            <div role="grid" aria-label="Tabla de contactos" className="grid grid-cols-[40px_1fr_1fr_1fr_1fr_1fr_1fr_52px] gap-1 px-3 py-2 text-xs font-medium text-muted-foreground border-b bg-muted/30" role="row">
+              <span className="text-center" role="columnheader">Score</span>
+              <span role="columnheader">Nombre</span>
+              <span role="columnheader">Apellido</span>
+              <span role="columnheader">WhatsApp</span>
+              <span role="columnheader">Empresa</span>
+              <span role="columnheader">Cargo</span>
+              <span role="columnheader">Email</span>
+              <span role="columnheader"><span className="sr-only">Acciones</span></span>
             </div>
-            <div ref={parentRef} className="overflow-auto" style={{ height: 'calc(100vh - 340px)', minHeight: '300px' }}>
+            <div ref={parentRef} className="overflow-auto" style={{ height: 'calc(100vh - 340px)', minHeight: '300px' }} role="rowgroup" aria-label="Lista de contactos virtualizada" tabIndex={0}>
               <div style={{ height: `${virtualizer.getTotalSize()}px`, position: "relative" }}>
                 {virtualizer.getVirtualItems().map((vItem) => {
                   const c = filtered[vItem.index];
@@ -174,10 +174,10 @@ export function ContactsTable({ contacts, onUpdateContact, onDeleteContact }: Co
                       </span>
 
                       <div className="flex gap-0.5">
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setEditContact(c)}>
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setEditContact(c)} aria-label={`Editar ${c.firstName} ${c.lastName}`}>
                           <Edit className="h-3 w-3" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => onDeleteContact(c.id)}>
+                        <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => onDeleteContact(c.id)} aria-label={`Eliminar ${c.firstName} ${c.lastName}`}>
                           <Trash2 className="h-3 w-3" />
                         </Button>
                       </div>

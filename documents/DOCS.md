@@ -2,9 +2,9 @@
 
 > **Instrucción:** Cuando el usuario diga **"documentar"**, actualizar este archivo con el estado actual del proyecto, trabajos realizados y pendientes.
 
-**Última actualización:** 2026-04-23 21:44 GMT+8  
-**Versión:** v3.3 (refactor + CORS)  
-**Commit HEAD:** `1462562`  
+**Última actualización:** 2026-04-23 22:15 GMT+8  
+**Versión:** v4.0 (hardening + performance)  
+**Commit HEAD:** (pending)  
 **Repo:** [pabloeckert/MejoraContactos](https://github.com/pabloeckert/MejoraContactos)  
 **Live:** https://mejoraok.com/util/mejoracontactos/  
 **Deploy status:** ✅ `1462562` desplegado (2026-04-23 13:43 UTC)
@@ -48,15 +48,18 @@ src/
 │   ├── ai-validator.ts        # Validación IA para casos ambiguos
 │   ├── api-keys.ts            # Gestión de API keys (localStorage)
 │   ├── column-mapper.ts       # Auto-detección de columnas
-│   ├── db.ts                  # IndexedDB (CRUD contactos)
+│   ├── db.ts                  # IndexedDB (CRUD + cursor batched + streaming)
 │   ├── dedup.ts               # Deduplicación O(n) con hash index
-│   ├── export-utils.ts        # Export CSV/Excel/VCF/JSON/JSONL/HTML
+│   ├── export-utils.ts        # Export CSV/Excel/VCF/JSON/JSONL/HTML (xlsx lazy)
 │   ├── field-validator.ts     # Validación semántica determinística
 │   ├── parsers.ts             # Parseo CSV/Excel/VCF/JSON
 │   ├── phone-validator.ts     # Validación telefónica E.164
 │   ├── providers.ts           # Config de 12 proveedores IA
 │   ├── rule-cleaner.ts        # Limpieza por reglas (80%+ casos)
 │   └── utils.ts               # Utilidades (cn)
+├── workers/
+│   ├── pipeline.worker.ts     # Web Worker: batchRuleClean + dedup
+│   └── useWorkerPipeline.ts   # Helper para dispatch al worker
 ├── types/
 │   └── contact.ts             # Interfaces principales
 ├── pages/
@@ -159,6 +162,33 @@ npm run dev    # → http://localhost:8080
 
 ## 8. Registro de Cambios
 
+### v4.0 — 2026-04-23 (Etapa 6: Hardening & Performance)
+
+| Cambio | Tipo | Archivo |
+|--------|------|---------|
+| Tests de componentes: useContactProcessing (16 tests) | 🔴 Testing | `hooks/__tests__/useContactProcessing.test.ts` |
+| Tests de componentes: PipelineVisualizer (7 tests) | 🔴 Testing | `components/__tests__/PipelineVisualizer.test.tsx` |
+| Tests de componentes: ColumnMapper (7 tests) | 🔴 Testing | `components/__tests__/ColumnMapper.test.tsx` |
+| Tests de componentes: ExportPanel (7 tests) | 🔴 Testing | `components/__tests__/ExportPanel.test.tsx` |
+| CI: `npm test` integrado en deploy.yml antes del build | 🔴 CI/CD | `.github/workflows/deploy.yml` |
+| Web Worker para batchRuleClean + dedup | 🟠 Performance | `workers/pipeline.worker.ts` |
+| Worker dispatch helper (auto-threshold 10K) | 🟠 Performance | `workers/useWorkerPipeline.ts` |
+| IndexedDB cursor batched + streamContacts() | 🟠 Performance | `lib/db.ts` |
+| xlsx lazy-loaded con import() dinámico | 🟠 Performance | `lib/export-utils.ts` |
+| xlsx removido de manualChunks | 🟠 Performance | `vite.config.ts` |
+| aria-labels en tabla virtualizada | 🟡 Accesibilidad | `components/ContactsTable.tsx` |
+| aria-labels en PipelineVisualizer | 🟡 Accesibilidad | `components/PipelineVisualizer.tsx` |
+| aria-labels en ExportPanel | 🟡 Accesibilidad | `components/ExportPanel.tsx` |
+| aria-labels en FileDropzone | 🟡 Accesibilidad | `components/FileDropzone.tsx` |
+| Focus-visible global + sr-only utility | 🟡 Accesibilidad | `src/index.css` |
+| Rate limiting por IP en Edge Function (30 req/min) | 🔴 Seguridad | `supabase/functions/clean-contacts/index.ts` |
+| Tests totales: 150 (11 archivos) | 🔴 Testing | — |
+
+**Bundle impact:**
+- xlsx: 424KB → lazy-loaded (solo al exportar Excel)
+- pipeline.worker.js: 3.95KB (separate chunk)
+- 150 tests, 11 archivos, todos pasan
+
 ### v3.3 — 2026-04-23 (Refactor + CORS)
 
 | Cambio | Tipo | Archivo |
@@ -220,7 +250,25 @@ Commits: `95ab556`, `273c3a3`, `b5f1579`, `8239f22`
 
 ## 9. Plan de Trabajo — Etapas Restantes
 
-### Estado general: ✅ Core completo | 🔧 Hardening pendiente
+### Estado general: ✅ Core completo | ✅ Hardening completado
+
+---
+
+### Etapa 6 — Hardening & Performance (✅ Completado)
+**Objetivo:** Robustez, performance y accesibilidad para datasets grandes  
+**Esfuerzo:** ~1 día | **Completado:** 2026-04-23
+
+| # | Tarea | Detalle | Estado |
+|---|-------|---------|--------|
+| 6.1 | Tests de componentes | useContactProcessing (16), PipelineVisualizer (7), ColumnMapper (7), ExportPanel (7) | ✅ 37 tests |
+| 6.2 | Integrar tests en CI | `npm test` en deploy.yml antes del build | ✅ |
+| 6.3 | Web Worker para pipeline | batchRuleClean + dedup en worker thread, auto-threshold 10K | ✅ |
+| 6.4 | Paginación IndexedDB | Cursor batched, streamContacts(), batch ops | ✅ |
+| 6.5 | Bundle splitting | xlsx lazy-loaded con import() dinámico, removido de manualChunks | ✅ |
+| 6.6 | Accesibilidad | aria-labels, focus-visible, sr-only, role attrs, keyboard nav | ✅ |
+| 6.7 | Rate limiting Edge Function | 30 req/min por IP, sliding window, cleanup periódico | ✅ |
+
+**Entregable:** 150 tests, CI integrado, worker thread, lazy xlsx, a11y, rate limiting. ✅
 
 ---
 
@@ -318,7 +366,7 @@ Commits: `95ab556`, `273c3a3`, `b5f1579`, `8239f22`
 | Dark mode | ✅ | next-themes |
 | Deploy CI/CD | ✅ | GitHub Actions → Hostinger |
 | Seguridad | ✅ | .env, XSS, CORS documented |
-| Tests | ✅ | 113 tests, 7 archivos |
+| Tests | ✅ | 150 tests, 11 archivos (lib + hooks + components) |
 | Multi-país UI | ✅ | 21 países con selector |
 | Refactor ProcessingPanel | ✅ | Hook + visualizer, 705→248 líneas |
 

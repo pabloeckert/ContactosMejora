@@ -31,7 +31,6 @@ export default defineConfig(({ mode }) => ({
           supabase: ["@supabase/supabase-js"],
           query: ["@tanstack/react-query"],
           charts: ["recharts"],
-          xlsx: ["xlsx"],
           ui: [
             "@radix-ui/react-dialog",
             "@radix-ui/react-dropdown-menu",

@@ -6,6 +6,46 @@ const ALLOWED_ORIGINS = [
   "http://localhost:5173",
 ];
 
+// --- Rate limiting ---
+// Sliding window: max RATE_LIMIT_MAX requests per RATE_LIMIT_WINDOW_MS per IP
+const RATE_LIMIT_MAX = 30; // max requests per window
+const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute window
+
+const rateLimitMap = new Map<string, number[]>();
+
+function checkRateLimit(ip: string): { allowed: boolean; retryAfter?: number } {
+  const now = Date.now();
+  const windowStart = now - RATE_LIMIT_WINDOW_MS;
+  const timestamps = rateLimitMap.get(ip) || [];
+
+  // Prune old entries
+  const recent = timestamps.filter((t) => t > windowStart);
+  rateLimitMap.set(ip, recent);
+
+  if (recent.length >= RATE_LIMIT_MAX) {
+    const oldestInWindow = recent[0];
+    const retryAfter = Math.ceil((oldestInWindow + RATE_LIMIT_WINDOW_MS - now) / 1000);
+    return { allowed: false, retryAfter };
+  }
+
+  recent.push(now);
+  return { allowed: true };
+}
+
+// Periodic cleanup to prevent memory leak (runs every 5 min via request pattern)
+let lastCleanup = 0;
+function maybeCleanup() {
+  const now = Date.now();
+  if (now - lastCleanup < 300_000) return;
+  lastCleanup = now;
+  const cutoff = now - RATE_LIMIT_WINDOW_MS * 2;
+  for (const [ip, timestamps] of rateLimitMap) {
+    const recent = timestamps.filter((t) => t > cutoff);
+    if (recent.length === 0) rateLimitMap.delete(ip);
+    else rateLimitMap.set(ip, recent);
+  }
+}
+
 function getCorsHeaders(origin: string | null): Record<string, string> {
   const allowed = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
   return {
@@ -282,6 +322,27 @@ async function pipelineBatch(batch: RawContact[], customKeys?: CustomKeysInput, 
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req.headers.get("origin"));
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  // Rate limiting by IP
+  maybeCleanup();
+  const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const rateLimit = checkRateLimit(clientIp);
+  if (!rateLimit.allowed) {
+    return new Response(
+      JSON.stringify({
+        error: `Rate limit excedido. Máximo ${RATE_LIMIT_MAX} requests por minuto. Reintentá en ${rateLimit.retryAfter}s.`,
+        retryAfter: rateLimit.retryAfter,
+      }),
+      {
+        status: 429,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json",
+          "Retry-After": String(rateLimit.retryAfter),
+        },
+      }
+    );
+  }
 
   try {
     const { contacts, provider: providerParam, customKeys, pipelineStages } = await req.json() as {

@@ -14,7 +14,7 @@ export function ExportPanel({ contacts }: ExportPanelProps) {
   const clean = contacts.filter((c) => !c.isDuplicate);
   const discarded = contacts.filter((c) => c.isDuplicate);
 
-  const handleExport = (format: string) => {
+  const handleExport = async (format: string) => {
     if (clean.length === 0) { toast.error("No hay contactos para exportar"); return; }
     const timestamp = new Date().toISOString().slice(0, 10);
     switch (format) {
@@ -24,7 +24,7 @@ export function ExportPanel({ contacts }: ExportPanelProps) {
         break;
       }
       case "excel": {
-        const data = exportExcel(clean, discarded);
+        const data = await exportExcel(clean, discarded);
         downloadFile(data, `contactos_${timestamp}.xlsx`, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         break;
       }
@@ -70,22 +70,22 @@ export function ExportPanel({ contacts }: ExportPanelProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-2 gap-3">
-          <Button variant="outline" className="h-auto py-4 flex-col gap-2" onClick={() => handleExport("csv")}>
+          <Button variant="outline" className="h-auto py-4 flex-col gap-2" onClick={() => handleExport("csv")} aria-label="Exportar contactos como CSV">
             <FileText className="h-5 w-5 text-green-600" />
             <span className="text-xs font-semibold">CSV</span>
             <span className="text-[10px] text-muted-foreground">Google Contacts</span>
           </Button>
-          <Button variant="outline" className="h-auto py-4 flex-col gap-2" onClick={() => handleExport("excel")}>
+          <Button variant="outline" className="h-auto py-4 flex-col gap-2" onClick={() => handleExport("excel")} aria-label="Exportar contactos como Excel">
             <FileSpreadsheet className="h-5 w-5 text-blue-500" />
             <span className="text-xs font-semibold">Excel</span>
             <span className="text-[10px] text-muted-foreground">2 hojas</span>
           </Button>
-          <Button variant="outline" className="h-auto py-4 flex-col gap-2" onClick={() => handleExport("vcf")}>
+          <Button variant="outline" className="h-auto py-4 flex-col gap-2" onClick={() => handleExport("vcf")} aria-label="Exportar contactos como VCF">
             <File className="h-5 w-5 text-primary" />
             <span className="text-xs font-semibold">VCF</span>
             <span className="text-[10px] text-muted-foreground">vCard 3.0</span>
           </Button>
-          <Button variant="outline" className="h-auto py-4 flex-col gap-2" onClick={() => handleExport("json")}>
+          <Button variant="outline" className="h-auto py-4 flex-col gap-2" onClick={() => handleExport("json")} aria-label="Exportar contactos como JSON">
             <FileText className="h-5 w-5 text-purple-500" />
             <span className="text-xs font-semibold">JSON</span>
             <span className="text-[10px] text-muted-foreground">Completo</span>
@@ -102,12 +102,12 @@ export function ExportPanel({ contacts }: ExportPanelProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-2 gap-3">
-          <Button variant="outline" className="h-auto py-4 flex-col gap-2" onClick={() => handleExport("jsonl")}>
+          <Button variant="outline" className="h-auto py-4 flex-col gap-2" onClick={() => handleExport("jsonl")} aria-label="Exportar para fine-tuning IA en formato JSONL">
             <Brain className="h-5 w-5 text-orange-500" />
             <span className="text-xs font-semibold">JSONL</span>
             <span className="text-[10px] text-muted-foreground">Fine-tuning IA</span>
           </Button>
-          <Button variant="outline" className="h-auto py-4 flex-col gap-2" onClick={() => handleExport("report")}>
+          <Button variant="outline" className="h-auto py-4 flex-col gap-2" onClick={() => handleExport("report")} aria-label="Generar informe HTML imprimible">
             <BarChart3 className="h-5 w-5 text-teal-500" />
             <span className="text-xs font-semibold">Informe</span>
             <span className="text-[10px] text-muted-foreground">HTML imprimible</span>

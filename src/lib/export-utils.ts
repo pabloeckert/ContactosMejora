@@ -1,4 +1,3 @@
-import * as XLSX from "xlsx";
 import type { UnifiedContact } from "@/types/contact";
 
 interface ContactRow {
@@ -46,7 +45,8 @@ export function exportCSV(contacts: UnifiedContact[]): string {
   return lines.join("\n");
 }
 
-export function exportExcel(clean: UnifiedContact[], discarded: UnifiedContact[]): Uint8Array {
+export async function exportExcel(clean: UnifiedContact[], discarded: UnifiedContact[]): Promise<Uint8Array> {
+  const XLSX = await import("xlsx");
   const wb = XLSX.utils.book_new();
   const ws1 = XLSX.utils.json_to_sheet(clean.map(contactToRow));
   XLSX.utils.book_append_sheet(wb, ws1, "Contactos Limpios");

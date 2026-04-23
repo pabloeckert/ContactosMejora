@@ -7,6 +7,7 @@ import { clearContacts } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 import { getActiveKeysMulti } from "@/lib/api-keys";
 import { autoDetectMappings } from "@/lib/column-mapper";
+import { runRuleCleanInWorker, runDedupInWorker } from "@/workers/useWorkerPipeline";
 import type { CountryCode } from "libphonenumber-js";
 import type {
   ParsedFile,
@@ -250,7 +251,12 @@ export function useContactProcessing(files: ParsedFile[]) {
     setPipelineState(prev => ({ ...prev, mapping: "done", rules: "active" }));
 
     addLog("info", `🔧 Limpieza por reglas de ${rawContacts.length} contactos...`);
-    const { cleaned: ruleCleaned, aiIndices } = batchRuleClean(rawContacts, defaultCountry);
+    const { cleaned: ruleCleaned, aiIndices } = await runRuleCleanInWorker(
+      rawContacts as Record<string, string>[],
+      (processed, total) => {
+        if (processed % 10000 === 0) addLog("info", `🔧 Reglas: ${processed.toLocaleString()}/${total.toLocaleString()}`);
+      }
+    );
     for (let i = 0; i < rawContacts.length; i++) {
       rawContacts[i].firstName = ruleCleaned[i].firstName;
       rawContacts[i].lastName = ruleCleaned[i].lastName;
@@ -318,21 +324,25 @@ export function useContactProcessing(files: ParsedFile[]) {
 
     setPipelineState(prev => ({ ...prev, validation: "done" }));
 
-    // Dedup
+    // Dedup — offloaded to worker for large datasets
     setPipelineState(prev => ({ ...prev, dedup: "active" }));
     addLog("info", "Detectando duplicados con índice hash O(n)...");
     const contacts: UnifiedContact[] = [];
-    const dedupIndex = new DedupIndex();
+
+    const dedupResults = await runDedupInWorker(
+      cleanedContacts as unknown as Record<string, string>[],
+      (processed, total) => {
+        if (processed % 10000 === 0) addLog("info", `🔍 Dedup: ${processed.toLocaleString()}/${total.toLocaleString()}`);
+      }
+    );
+
     for (let i = 0; i < cleanedContacts.length; i++) {
       const contact = cleanedContacts[i] as UnifiedContact;
-      const dedupResult = dedupIndex.add(
-        { id: contact.id, firstName: contact.firstName, lastName: contact.lastName, email: contact.email, whatsapp: contact.whatsapp }
-      );
+      const dedupResult = dedupResults[i];
       contact.isDuplicate = dedupResult.isDuplicate;
       contact.duplicateOf = dedupResult.duplicateOf;
       contact.confidence = dedupResult.confidence;
       contacts.push(contact);
-      if (i % 1000 === 0) await new Promise((r) => setTimeout(r, 0));
     }
     setPipelineState(prev => ({ ...prev, dedup: "done" }));
 

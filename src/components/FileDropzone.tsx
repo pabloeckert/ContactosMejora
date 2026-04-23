@@ -152,6 +152,9 @@ export function FileDropzone({ files, onFilesAdded, onRemoveFile }: FileDropzone
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={onDrop}
+        role="region"
+        aria-label="Zona de carga de archivos"
+        aria-dropeffect="copy"
         className={`relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-10 transition-all ${
           isDragging ? "border-primary bg-primary/5 shadow-lg" : "border-border hover:border-primary/50 hover:bg-muted/30"
         }`}
@@ -176,6 +179,7 @@ export function FileDropzone({ files, onFilesAdded, onRemoveFile }: FileDropzone
               input.onchange = (ev) => { const t = ev.target as HTMLInputElement; if (t.files) handleFiles(t.files); };
               input.click();
             }}
+            aria-label="Seleccionar archivos para cargar"
           >
             <Upload className="h-4 w-4 mr-1" />
             Archivos
@@ -184,6 +188,7 @@ export function FileDropzone({ files, onFilesAdded, onRemoveFile }: FileDropzone
             variant="outline"
             size="sm"
             onClick={(e) => { e.stopPropagation(); handleFolderSelect(); }}
+            aria-label="Seleccionar carpeta para cargar"
           >
             <FolderOpen className="h-4 w-4 mr-1" />
             Carpeta
@@ -208,7 +213,7 @@ export function FileDropzone({ files, onFilesAdded, onRemoveFile }: FileDropzone
                   <Badge variant="outline" className="text-xs shrink-0">{f.type}</Badge>
                   <span className="text-xs text-muted-foreground shrink-0">{f.rows.length} filas · {formatSize(f.size)}</span>
                 </div>
-                <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0 text-muted-foreground hover:text-destructive" onClick={() => onRemoveFile(f.id)}>
+                <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0 text-muted-foreground hover:text-destructive" onClick={() => onRemoveFile(f.id)} aria-label={`Eliminar archivo ${f.name}`}>
                   <X className="h-3 w-3" />
                 </Button>
               </div>
