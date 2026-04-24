@@ -2,9 +2,9 @@
 
 > **⚡ Instrucción de actualización:** Cuando el usuario diga **"documentar"**, actualizar este archivo con el estado actual del proyecto, trabajos realizados, pendientes y cualquier cambio relevante. Todos los documentos viven en esta carpeta `Documents/`.
 
-**Última actualización:** 2026-04-24 20:12 GMT+8  
+**Última actualización:** 2026-04-24 20:26 GMT+8  
 **Versión:** v4.5 (limpieza proveedor lovable + plan optimizado)  
-**Commit HEAD:** `a724830`  
+**Commit HEAD:** `c995baf`  
 **Repo:** [pabloeckert/MejoraContactos](https://github.com/pabloeckert/MejoraContactos)  
 **Live:** https://util.mejoraok.com/mejoracontactos/  
 **Deploy status:** ✅ Deploy verificado — HTTP 200 — 150 tests pasan
