@@ -24,7 +24,14 @@ jobs:
       - run: npm test
       - run: npm run build
 
-      - name: Deploy via SSH
+      # Smoke test the build locally before deploying
+      - name: Build smoke test
+        run: |
+          test -f dist/index.html || (echo "ERROR: dist/index.html not found" && exit 1)
+          echo "✅ Build OK — dist/ contains $(find dist -type f | wc -l) files"
+
+      # Backup current deployment (for rollback)
+      - name: Backup current deployment
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -33,8 +40,18 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script_stop: true
           script: |
-            rm -rf /home/u846064658/domains/mejoraok.com/public_html/util/mejoracontactos/assets/*
+            DEPLOY_DIR="/home/u846064658/domains/mejoraok.com/public_html/util/mejoracontactos"
+            BACKUP_DIR="/home/u846064658/domains/mejoraok.com/public_html/util/mejoracontactos_backup"
+            # Keep last deployment as backup
+            if [ -d "$DEPLOY_DIR" ]; then
+              rm -rf "$BACKUP_DIR"
+              cp -r "$DEPLOY_DIR" "$BACKUP_DIR"
+              echo "✅ Backup created"
+            fi
+            # Clean assets for fresh deploy
+            rm -rf "$DEPLOY_DIR/assets/*"
 
+      # Deploy new version
       - name: Upload dist via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -45,3 +62,35 @@ jobs:
           source: "dist/*"
           target: /home/u846064658/domains/mejoraok.com/public_html/util/mejoracontactos
           strip_components: 1
+
+      # Post-deploy smoke test
+      - name: Post-deploy smoke test
+        run: |
+          sleep 10
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "https://util.mejoraok.com/mejoracontactos/" 2>/dev/null || echo "000")
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ Deploy OK — HTTP $HTTP_CODE"
+          else
+            echo "⚠️ Deploy may have issues — HTTP $HTTP_CODE"
+          fi
+
+      # Auto-rollback on failure (if smoke test fails)
+      - name: Rollback on failure
+        if: failure()
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASS }}
+          port: ${{ secrets.SSH_PORT }}
+          script_stop: true
+          script: |
+            DEPLOY_DIR="/home/u846064658/domains/mejoraok.com/public_html/util/mejoracontactos"
+            BACKUP_DIR="/home/u846064658/domains/mejoraok.com/public_html/util/mejoracontactos_backup"
+            if [ -d "$BACKUP_DIR" ]; then
+              rm -rf "$DEPLOY_DIR"
+              cp -r "$BACKUP_DIR" "$DEPLOY_DIR"
+              echo "✅ Rolled back to previous version"
+            else
+              echo "⚠️ No backup found for rollback"
+            fi

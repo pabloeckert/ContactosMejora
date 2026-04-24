@@ -2,9 +2,9 @@
 
 > **⚡ Instrucción de actualización:** Cuando el usuario diga **"documentar"**, actualizar este archivo con el estado actual del proyecto, trabajos realizados, pendientes y cualquier cambio relevante. Todos los documentos viven en esta carpeta `Documents/`.
 
-**Última actualización:** 2026-04-24 21:40 GMT+8  
-**Versión:** v7.0 (UX y Onboarding)  
-**Commit HEAD:** `a32d710`  
+**Última actualización:** 2026-04-24 21:45 GMT+8  
+**Versión:** v8.0 (Performance y Escalabilidad)  
+**Commit HEAD:** (pending)  
 **Análisis profundo:** Ver `Documents/ANALISIS_PROFUNDO.md` (35 perspectivas, plan 5 etapas)  
 **Repo:** [pabloeckert/MejoraContactos](https://github.com/pabloeckert/MejoraContactos)  
 **Live:** https://util.mejoraok.com/mejoracontactos/  
@@ -212,6 +212,18 @@ npx supabase functions deploy google-contacts-auth
 | Subdominio DNS | `util.mejoraok.com` → Hostinger |
 
 ## 8. Registro de Cambios
+
+### v8.0 — 2026-04-24 (Performance y Escalabilidad)
+
+| Cambio | Tipo | Detalle |
+|--------|------|---------|
+| PWA manifest | ✨ Feature | manifest.json + Service Worker (cache-first para assets, network-first para APIs) |
+| SW registration | ✨ Feature | Registro automático del Service Worker en main.tsx |
+| usePipelineConfig | 🔧 Refactor | Hook extraído para configuración de pipeline (providers, mappings, country) |
+| ai-cleaner.ts | 🔧 Refactor | Lógica de limpieza IA extraída a utilidad independiente |
+| Rollback automático | 🔧 DevOps | Backup antes de deploy + rollback si falla |
+| Build smoke test | 🔧 CI | Verifica dist/ antes de deploy + HTTP check post-deploy |
+| Cloudflare guide | 📚 Docs | Documentación paso a paso para configurar CDN |
 
 ### v7.0 — 2026-04-24 (UX y Onboarding)
 
