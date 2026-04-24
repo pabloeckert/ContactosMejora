@@ -7,12 +7,14 @@ import { ProcessingPanel } from "@/components/ProcessingPanel";
 import { ContactsTable } from "@/components/ContactsTable";
 import { ExportPanel } from "@/components/ExportPanel";
 import { DashboardPanel } from "@/components/DashboardPanel";
-import { saveContacts, updateContact, deleteContact, clearContacts } from "@/lib/db";
+import { saveContacts, updateContact, deleteContact, clearContacts, saveHistorySnapshot } from "@/lib/db";
 import type { ParsedFile, UnifiedContact } from "@/types/contact";
 import { toast } from "sonner";
-import { Upload, Zap, Users, Download, BarChart3, Settings, Moon, Sun } from "lucide-react";
+import { Upload, Zap, Users, Download, BarChart3, Settings, Moon, Sun, Activity, History } from "lucide-react";
 import { GoogleContactsPanel } from "@/components/GoogleContactsPanel";
 import { ApiKeysPanel } from "@/components/ApiKeysPanel";
+import { HealthCheckPanel } from "@/components/HealthCheckPanel";
+import { HistoryPanel } from "@/components/HistoryPanel";
 
 const Index = () => {
   const [files, setFiles] = useState<ParsedFile[]>([]);
@@ -29,6 +31,10 @@ const Index = () => {
   }, []);
 
   const handleProcessingComplete = useCallback(async (processed: UnifiedContact[]) => {
+    // Save snapshot before overwriting (for undo)
+    if (contacts.length > 0) {
+      await saveHistorySnapshot("clean", `Limpieza de ${files.length} archivo(s)`, contacts);
+    }
     setContacts(processed);
     try {
       const clean = processed.filter((c) => !c.isDuplicate);
@@ -37,7 +43,7 @@ const Index = () => {
       toast.error("Error guardando en base de datos local");
     }
     setActiveTab("results");
-  }, []);
+  }, [contacts, files]);
 
   const handleUpdateContact = useCallback(async (contact: UnifiedContact) => {
     setContacts((prev) => prev.map((c) => (c.id === contact.id ? contact : c)));
@@ -52,11 +58,20 @@ const Index = () => {
   }, []);
 
   const handleResetAll = useCallback(async () => {
+    // Save snapshot before resetting
+    if (contacts.length > 0) {
+      await saveHistorySnapshot("clean", "Reinicio completo", contacts);
+    }
     setFiles([]);
     setContacts([]);
     await clearContacts();
     setActiveTab("import");
     toast.success("Todo reiniciado");
+  }, [contacts]);
+
+  const handleRestoreFromHistory = useCallback((restored: unknown[]) => {
+    setContacts(restored as UnifiedContact[]);
+    setActiveTab("results");
   }, []);
 
   const uniqueCount = contacts.filter((c) => !c.isDuplicate).length;
@@ -173,7 +188,13 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="settings">
-            <ApiKeysPanel />
+            <div className="space-y-4">
+              <ApiKeysPanel />
+              <div className="grid gap-4 lg:grid-cols-2">
+                <HealthCheckPanel />
+                <HistoryPanel onRestore={handleRestoreFromHistory} />
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </main>

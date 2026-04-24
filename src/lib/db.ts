@@ -2,15 +2,25 @@ import { openDB, type IDBPDatabase } from "idb";
 import type { UnifiedContact } from "@/types/contact";
 
 const DB_NAME = "mejoraapp";
-const DB_VERSION = 2;
-const CURSOR_BATCH_SIZE = 5000; // Process 5K records per batch
+const DB_VERSION = 3;
+const CURSOR_BATCH_SIZE = 5000;
+
+export interface HistoryEntry {
+  id: string;
+  timestamp: Date;
+  action: "clean" | "dedup" | "import";
+  description: string;
+  contactCount: number;
+  snapshot: UnifiedContact[]; // contacts BEFORE the operation
+}
 
 let dbInstance: IDBPDatabase | null = null;
 
 async function getDB() {
   if (dbInstance) return dbInstance;
   dbInstance = await openDB(DB_NAME, DB_VERSION, {
-    upgrade(db) {
+    upgrade(db, oldVersion) {
+      // Contacts store
       if (db.objectStoreNames.contains("contacts")) {
         db.deleteObjectStore("contacts");
       }
@@ -18,6 +28,12 @@ async function getDB() {
       store.createIndex("email", "email", { unique: false });
       store.createIndex("whatsapp", "whatsapp", { unique: false });
       store.createIndex("source", "source", { unique: false });
+
+      // History store (v3)
+      if (!db.objectStoreNames.contains("history")) {
+        const histStore = db.createObjectStore("history", { keyPath: "id" });
+        histStore.createIndex("timestamp", "timestamp", { unique: false });
+      }
     },
   });
   return dbInstance;
@@ -129,4 +145,84 @@ export async function updateContacts(contacts: UnifiedContact[]) {
     await tx.store.put(c);
   }
   await tx.done;
+}
+
+// ── History (Undo) ──────────────────────────────────────────
+
+const MAX_HISTORY = 10; // Keep last 10 snapshots
+
+/**
+ * Save a snapshot before an operation (clean, dedup, import).
+ * Keeps only the last MAX_HISTORY entries.
+ */
+export async function saveHistorySnapshot(
+  action: HistoryEntry["action"],
+  description: string,
+  snapshot: UnifiedContact[]
+): Promise<string> {
+  const db = await getDB();
+  const entry: HistoryEntry = {
+    id: crypto.randomUUID(),
+    timestamp: new Date(),
+    action,
+    description,
+    contactCount: snapshot.length,
+    snapshot,
+  };
+
+  const tx = db.transaction("history", "readwrite");
+  await tx.store.put(entry);
+
+  // Prune old entries
+  const all = await tx.store.index("timestamp").getAll();
+  if (all.length > MAX_HISTORY) {
+    const toDelete = all.slice(0, all.length - MAX_HISTORY);
+    for (const old of toDelete) {
+      await tx.store.delete(old.id);
+    }
+  }
+  await tx.done;
+  return entry.id;
+}
+
+/**
+ * Get history entries (newest first), without snapshots (lightweight).
+ */
+export async function getHistory(): Promise<Omit<HistoryEntry, "snapshot">[]> {
+  const db = await getDB();
+  const all = await db.getAll("history");
+  return all
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .map(({ snapshot, ...rest }) => rest);
+}
+
+/**
+ * Restore contacts from a specific history snapshot.
+ * Clears current contacts and replaces with the snapshot.
+ */
+export async function restoreFromHistory(historyId: string): Promise<UnifiedContact[]> {
+  const db = await getDB();
+  const entry = await db.get("history", historyId);
+  if (!entry) throw new Error("Historial no encontrado");
+
+  // Clear and restore
+  await clearContacts();
+  await saveContacts(entry.snapshot);
+  return entry.snapshot;
+}
+
+/**
+ * Delete a single history entry.
+ */
+export async function deleteHistoryEntry(historyId: string) {
+  const db = await getDB();
+  await db.delete("history", historyId);
+}
+
+/**
+ * Clear all history.
+ */
+export async function clearHistory() {
+  const db = await getDB();
+  await db.clear("history");
 }
