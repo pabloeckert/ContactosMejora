@@ -20,7 +20,6 @@ interface ProcessingPanelProps {
 const PROVIDER_ICONS: Record<string, React.ReactNode> = {
   groq: <Zap className="h-3 w-3 text-yellow-500" />,
   openrouter: <Globe className="h-3 w-3 text-purple-500" />,
-  lovable: <Bot className="h-3 w-3 text-blue-500" />,
   together: <Zap className="h-3 w-3 text-emerald-500" />,
   cerebras: <Zap className="h-3 w-3 text-cyan-500" />,
   deepinfra: <Zap className="h-3 w-3 text-red-500" />,

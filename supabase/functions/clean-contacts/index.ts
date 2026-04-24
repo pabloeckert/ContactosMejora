@@ -66,7 +66,7 @@ interface RawContact {
 }
 
 type Provider =
-  | "lovable" | "groq" | "openrouter" | "together" | "cerebras"
+  | "groq" | "openrouter" | "together" | "cerebras"
   | "deepinfra" | "sambanova" | "mistral" | "deepseek"
   | "gemini" | "cloudflare" | "huggingface" | "nebius"
   | "pipeline";
@@ -121,16 +121,15 @@ function buildConfig(provider: Exclude<Provider, "pipeline">, apiKey: string): P
       return { url: "https://api-inference.huggingface.co/v1/chat/completions", apiKey, model: "meta-llama/Llama-3.3-70B-Instruct", name: "Hugging Face (Llama 3.3)" };
     case "nebius":
       return { url: "https://api.studio.nebius.ai/v1/chat/completions", apiKey, model: "meta-llama/Llama-3.3-70B-Instruct", name: "Nebius AI (Llama 3.3)" };
-    default: {
-      return { url: "https://ai.gateway.lovable.dev/v1/chat/completions", apiKey, model: "google/gemini-3-flash-preview", name: "Lovable AI (Gemini Flash)" };
-    }
+    default:
+      throw new Error(`Proveedor desconocido: ${provider}`);
   }
 }
 
 function getEnvKey(provider: string): string | undefined {
   const map: Record<string, string> = {
-    groq: "GROQ_API_KEY", openrouter: "OPENROUTER_API_KEY",
-    lovable: "LOVABLE_API_KEY",
+    groq: "GROQ_API_KEY",
+    openrouter: "OPENROUTER_API_KEY",
   };
   return map[provider] ? Deno.env.get(map[provider]) : undefined;
 }
@@ -277,7 +276,7 @@ async function pipelineBatch(batch: RawContact[], customKeys?: CustomKeysInput, 
   const log: string[] = [];
   const cleanProvider = (stages?.clean || "groq") as Exclude<Provider, "pipeline">;
   const verifyProvider = (stages?.verify || "openrouter") as Exclude<Provider, "pipeline">;
-  const correctProvider = (stages?.correct || "lovable") as Exclude<Provider, "pipeline">;
+  const correctProvider = (stages?.correct || "gemini") as Exclude<Provider, "pipeline">;
 
   let cleaned: RawContact[];
   try {
@@ -360,7 +359,7 @@ serve(async (req) => {
       });
     }
 
-    const provider = providerParam || "lovable";
+    const provider = providerParam || "groq";
 
     if (provider === "pipeline") {
       const batchSize = 20;
@@ -377,7 +376,7 @@ serve(async (req) => {
       const stageNames = [
         pipelineStages?.clean || "groq",
         pipelineStages?.verify || "openrouter",
-        pipelineStages?.correct || "lovable",
+        pipelineStages?.correct || "gemini",
       ];
       return new Response(JSON.stringify({
         contacts: allCleaned, provider: `Pipeline (${stageNames.join(" → ")})`, stages: allStages,

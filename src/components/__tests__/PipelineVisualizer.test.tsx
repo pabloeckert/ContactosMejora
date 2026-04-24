@@ -7,7 +7,7 @@ import type { StageConfig } from "@/hooks/useContactProcessing";
 const defaultStageConfig: StageConfig = {
   clean: "groq",
   verify: "openrouter",
-  correct: "lovable",
+  correct: "gemini",
 };
 
 const allIdle: PipelineState = {

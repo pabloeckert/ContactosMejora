@@ -43,9 +43,9 @@ export const INITIAL_PIPELINE: PipelineState = {
 };
 
 export function suggestOptimalConfig(activeProviders: string[]): StageConfig {
-  const cleanPriority = ["groq", "cerebras", "sambanova", "deepinfra", "together", "mistral", "openrouter", "deepseek", "gemini", "cloudflare", "huggingface", "nebius", "lovable"];
-  const verifyPriority = ["openrouter", "mistral", "deepseek", "gemini", "together", "groq", "cerebras", "deepinfra", "sambanova", "cloudflare", "huggingface", "nebius", "lovable"];
-  const correctPriority = ["lovable", "gemini", "openrouter", "deepseek", "groq", "mistral", "together", "cerebras", "deepinfra", "sambanova", "cloudflare", "huggingface", "nebius"];
+  const cleanPriority = ["groq", "cerebras", "sambanova", "deepinfra", "together", "mistral", "openrouter", "deepseek", "gemini", "cloudflare", "huggingface", "nebius"];
+  const verifyPriority = ["openrouter", "mistral", "deepseek", "gemini", "together", "groq", "cerebras", "deepinfra", "sambanova", "cloudflare", "huggingface", "nebius"];
+  const correctPriority = ["gemini", "openrouter", "deepseek", "groq", "mistral", "together", "cerebras", "deepinfra", "sambanova", "cloudflare", "huggingface", "nebius"];
 
   const pick = (priority: string[], used: Set<string>): string => {
     for (const p of priority) {
@@ -70,7 +70,7 @@ export function suggestOptimalConfig(activeProviders: string[]): StageConfig {
 export function useContactProcessing(files: ParsedFile[]) {
   const [mode, setMode] = useState<"single" | "pipeline">("pipeline");
   const [singleProvider, setSingleProvider] = useState<string>("groq");
-  const [stageConfig, setStageConfig] = useState<StageConfig>({ clean: "groq", verify: "openrouter", correct: "lovable" });
+  const [stageConfig, setStageConfig] = useState<StageConfig>({ clean: "groq", verify: "openrouter", correct: "gemini" });
   const [mappings, setMappings] = useState<ColumnMapping[]>([]);
   const [pipelineState, setPipelineState] = useState<PipelineState>(INITIAL_PIPELINE);
   const [defaultCountry, setDefaultCountry] = useState<string>("AR");

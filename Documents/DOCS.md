@@ -1,10 +1,10 @@
 # 📚 MejoraContactos — Documentación Consolidada
 
-> **⚡ Instrucción de actualización:** Cuando el usuario diga **"documentar"**, actualizar este archivo con el estado actual del proyecto, trabajos realizados, pendientes y cualquier cambio relevante.
+> **⚡ Instrucción de actualización:** Cuando el usuario diga **"documentar"**, actualizar este archivo con el estado actual del proyecto, trabajos realizados, pendientes y cualquier cambio relevante. Todos los documentos viven en esta carpeta `Documents/`.
 
-**Última actualización:** 2026-04-24 06:17 GMT+8  
-**Versión:** v4.4 (fix anon key + modelo OpenRouter + deploy completo)  
-**Commit HEAD:** `8742638`  
+**Última actualización:** 2026-04-24 20:02 GMT+8  
+**Versión:** v4.5 (limpieza proveedor lovable + plan optimizado)  
+**Commit HEAD:** *(se actualiza al pushear)*  
 **Repo:** [pabloeckert/MejoraContactos](https://github.com/pabloeckert/MejoraContactos)  
 **Live:** https://util.mejoraok.com/mejoracontactos/  
 **Deploy status:** ✅ Todo desplegado y funcionando
@@ -130,10 +130,11 @@ supabase/
 | 12 | nebius | Nebius AI | meta-llama/Llama-3.3-70B-Instruct | ⏳ Sin testear |
 
 **Notas sobre proveedores:**
-- **"lovable" eliminado** del fallback en Edge Function — solo funciona en Lovable.dev, no en hosting externo
-- **OpenRouter**: modelo actualizado de `mistral-small-3.2` a `llama-3.3-70b-instruct:free` (el anterior ya no existe)
+- **"lovable" eliminado completamente** del código — era una API interna de Lovable.dev, no funciona en hosting externo
+- **OpenRouter**: modelo `llama-3.3-70b-instruct:free`
 - Rotación automática: 429/402/401 → siguiente proveedor
 - Soporta múltiples keys por proveedor
+- Default pipeline: groq (limpiar) → openrouter (verificar) → gemini (corregir)
 
 ## 6. Formatos Soportados
 
@@ -209,41 +210,37 @@ npx supabase functions deploy google-contacts-auth
 
 ## 8. Registro de Cambios
 
+### v4.5 — 2026-04-24 (Limpieza proveedor lovable + plan optimizado)
+
+| Cambio | Tipo | Detalle |
+|--------|------|---------|
+| "lovable" eliminado del Edge Function | 🔴 Fix | Type, default, env map, fallback — todo limpio |
+| "lovable" eliminado del frontend | 🔴 Fix | Priority lists, stageConfig default, icon maps |
+| Tests actualizados | 🟠 Mantenimiento | 150/150 tests pasan, 0 referencias a lovable |
+| Default correct provider → gemini | 🟠 Mejora | Antes era "lovable" (inexistente) |
+| Plan de trabajo reorganizado | 📚 Docs | Etapas claras y optimizadas |
+
 ### v4.4 — 2026-04-24 (Fix anon key + modelo OpenRouter)
 
 **Commits:** `8742638`
 
 | Cambio | Tipo | Detalle |
 |--------|------|---------|
-| Anon key JWT corregida | 🔴 Fix crítico | Key obtenida via Management API (la anterior era inválida) |
-| OpenRouter modelo actualizado | 🔴 Fix | `mistral-small-3.2` → `llama-3.3-70b-instruct:free` (el anterior no existe) |
-| "lovable" eliminado del fallback | 🟠 Mejora | No funciona en hosting externo |
-| OpenRouter referer actualizado | 🟠 Mejora | `lovable.dev` → `mejoraok.com` |
+| Anon key JWT corregida | 🔴 Fix crítico | Key obtenida via Management API |
+| OpenRouter modelo actualizado | 🔴 Fix | `mistral-small-3.2` → `llama-3.3-70b-instruct:free` |
 | Edge Function redeployada | 🔴 Deploy | Con todos los fixes |
 | Groq testeado | ✅ Verificación | HTTP 200, limpieza funciona |
 | OpenRouter testeado | ✅ Verificación | Modelo OK, rate limit temporal |
-
-**Problema resuelto:** El proyecto nuevo de Supabase usa sistema de auth nuevo. La anon key de la UI (`Legacy API keys`) no coincidía con la del Management API. Se obtuvo la key correcta via `GET /v1/projects/{id}/api-keys`.
 
 ### v4.3 — 2026-04-24 (Migración Supabase)
 
 **Commits:** `3dfcce3`, `14b4319`, `d75e9b3`
 
-| Cambio | Tipo | Detalle |
-|--------|------|---------|
-| Migración a Supabase propio | 🔴 Infra | Proyecto `tzatuvxatsduuslxqdtm` (antes `jurmgatcyxjkutmzweey`) |
-| Supabase URL + key actualizada | 🔴 Config | `client.ts` → nueva URL + anon key |
-| Edge Functions deployadas | 🔴 Deploy | `clean-contacts` + `google-contacts-auth` |
-| CORS fix desplegado | 🔴 Fix | `util.mejoraok.com` en ALLOWED_ORIGINS |
-| `supabase/.temp` en gitignore | 🟠 Limpieza | Archivos de estado local fuera del repo |
+Migración a Supabase propio `tzatuvxatsduuslxqdtm`, Edge Functions deployadas, CORS fix.
 
 ### v4.2 — 2026-04-24 (CORS Fix + Consolidación Docs)
 
-| Cambio | Tipo | Archivo |
-|--------|------|---------|
-| CORS: `util.mejoraok.com` agregado a ALLOWED_ORIGINS | 🔴 Fix crítico | ambas Edge Functions |
-| Carpeta `documents/` → `Documents/` | 📚 Docs | renombrada |
-| Documentación consolidada | 📚 Docs | `Documents/DOCS.md` |
+CORS: `util.mejoraok.com` agregado. Documentación consolidada en `Documents/DOCS.md`.
 
 ### v4.1 — 2026-04-23 (Subdominio + Landing page)
 
@@ -257,9 +254,9 @@ Tests de componentes, Web Worker, IndexedDB batched, xlsx lazy-loaded, a11y, rat
 
 Core completo: pipeline IA, dedup O(n), Google Contacts, exportación 6 formatos, dark mode, multi-país (21), refactor ProcessingPanel, CORS, tests unitarios (113).
 
-## 9. Plan de Trabajo — Estado y Etapas
+## 9. Plan de Trabajo — Etapas Optimizadas
 
-### Estado general: ✅ Core completo | ✅ Deploy funcional | ✅ APIs verificadas
+### Estado general: ✅ Core completo | ✅ Deploy funcional | ✅ APIs verificadas | ✅ Código limpio
 
 ### ✅ Etapas Completadas
 
@@ -274,25 +271,34 @@ Core completo: pipeline IA, dedup O(n), Google Contacts, exportación 6 formatos
 | CORS Fix (v4.2) | util.mejoraok.com en whitelist | 2026-04-24 |
 | Migración Supabase (v4.3) | Proyecto propio + deploy | 2026-04-24 |
 | Fix APIs (v4.4) | Anon key + modelo OpenRouter | 2026-04-24 |
+| Limpieza código (v4.5) | Eliminar proveedor "lovable" obsoleto | 2026-04-24 |
 
 ### 📋 Próximas Etapas Sugeridas
 
-#### Etapa 7 — Verificación completa de proveedores
+#### Etapa 6 — Verificación completa de proveedores
 | # | Tarea | Detalle | Estado |
 |---|-------|---------|--------|
-| 7.1 | Test Groq | Cargar key, test desde app live | ✅ Funcionando |
-| 7.2 | Test OpenRouter | Modelo actualizado, rate limit temporal | ✅ Funcionando |
-| 7.3 | Test pipeline completo | Importar CSV → procesar → verificar | ⏳ Pendiente usuario |
-| 7.4 | Test otros proveedores | Cargar keys de Together, Cerebras, etc. | ⏳ Opcional |
-| 7.5 | Test Google OAuth | Importación desde Google Contacts | ⏳ Pendiente |
+| 6.1 | Test Groq | Cargar key, test desde app live | ✅ Funcionando |
+| 6.2 | Test OpenRouter | Modelo actualizado, rate limit temporal | ✅ Funcionando |
+| 6.3 | Test pipeline completo | Importar CSV → procesar → verificar | ⏳ Pendiente usuario |
+| 6.4 | Test otros proveedores | Cargar keys de Together, Cerebras, etc. | ⏳ Opcional |
+| 6.5 | Test Google OAuth | Importación desde Google Contacts | ⏳ Pendiente |
 
-#### Etapa 8 — Mejoras
+#### Etapa 7 — Mejoras funcionales
 | # | Tarea | Detalle |
 |---|-------|---------|
-| 8.1 | Health check automático | Test periódico de keys desde la UI |
-| 8.2 | Monitoreo Edge Functions | Revisar logs en Supabase Dashboard |
+| 7.1 | Health check automático | Test periódico de keys desde la UI |
+| 7.2 | Monitoreo Edge Functions | Revisar logs en Supabase Dashboard |
+| 7.3 | Undo/History | Deshacer última operación de limpieza |
 
-## 10. Resumen de Estado por Componente
+#### Etapa 8 — Optimización avanzada
+| # | Tarea | Detalle |
+|---|-------|---------|
+| 8.1 | PWA offline | Service worker + manifest |
+| 8.2 | Batch progress real | Streaming de progreso desde Edge Function |
+| 8.3 | Exportación programada | Auto-export post-limpieza |
+
+## 10. Estado por Componente
 
 | Componente | Estado | Notas |
 |-----------|--------|-------|
@@ -315,13 +321,14 @@ Core completo: pipeline IA, dedup O(n), Google Contacts, exportación 6 formatos
 | Anon key JWT | ✅ | Obtenida via Management API |
 | Groq API | ✅ | Verificado HTTP 200 |
 | OpenRouter API | ✅ | Modelo actualizado, verificado |
-| Tests | ✅ | 150+ tests, 11 archivos |
+| Tests | ✅ | 150 tests, 11 archivos |
 | Multi-país | ✅ | 21 países con selector |
 | Web Worker | ✅ | batchRuleClean + dedup offloaded |
 | IndexedDB batched | ✅ | Cursor-based, streamContacts() |
 | Bundle splitting | ✅ | xlsx lazy, index 376KB |
 | Accesibilidad | ✅ | aria-labels, focus-visible, roles |
 | Rate limiting | ✅ | 30 req/min por IP |
+| Código limpio | ✅ | 0 refs a proveedores obsoletos |
 
 ## 11. Notas de Seguridad
 
@@ -332,7 +339,7 @@ Core completo: pipeline IA, dedup O(n), Google Contacts, exportación 6 formatos
 5. **Supabase anon key** — pública, protegida por RLS
 6. **Rate limiting** — 30 req/min por IP en Edge Function, sliding window
 7. **Tokens de deploy** — NO se commitean (solo en entorno local del deployador)
-8. **"lovable" proveedor eliminado** del fallback — API interna de Lovable.dev, no funciona externamente
+8. **Proveedores obsoletos eliminados** — "lovable" removido completamente del código
 
 ## 12. Comandos Rápidos
 
@@ -341,7 +348,7 @@ Core completo: pipeline IA, dedup O(n), Google Contacts, exportación 6 formatos
 npm install && npm run dev    # → http://localhost:8080
 
 # Tests
-npm test                      # 150+ tests
+npm test                      # 150 tests
 
 # Deploy Edge Functions (manual)
 npx supabase login --token sbp_XXXXX
@@ -352,9 +359,8 @@ npx supabase functions deploy google-contacts-auth
 # Deploy frontend (automático al pushear a main)
 git push origin main
 
-# Obtener anon key via API
-curl -s "https://api.supabase.com/v1/projects/tzatuvxatsduuslxqdtm/api-keys" \
-  -H "Authorization: Bearer sbp_XXXXX"
+# Verificar que no hay referencias a proveedores obsoletos
+grep -rn "lovable" src/ supabase/ --include="*.ts" --include="*.tsx"
 ```
 
 ---

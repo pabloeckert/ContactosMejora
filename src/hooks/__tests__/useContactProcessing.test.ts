@@ -42,7 +42,7 @@ function makeFiles(overrides?: Partial<ParsedFile>): ParsedFile[] {
 
 describe("suggestOptimalConfig", () => {
   it("should pick 3 different providers when available", () => {
-    const config = suggestOptimalConfig(["groq", "openrouter", "lovable", "together"]);
+    const config = suggestOptimalConfig(["groq", "openrouter", "gemini", "together"]);
     expect(config.clean).toBeTruthy();
     expect(config.verify).toBeTruthy();
     expect(config.correct).toBeTruthy();
@@ -63,7 +63,7 @@ describe("suggestOptimalConfig", () => {
   });
 
   it("should prefer groq for cleaning", () => {
-    const config = suggestOptimalConfig(["groq", "openrouter", "lovable"]);
+    const config = suggestOptimalConfig(["groq", "openrouter", "gemini"]);
     expect(config.clean).toBe("groq");
   });
 });
