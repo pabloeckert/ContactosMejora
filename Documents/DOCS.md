@@ -4,7 +4,7 @@
 
 **Última actualización:** 2026-04-24 21:45 GMT+8  
 **Versión:** v8.0 (Performance y Escalabilidad)  
-**Commit HEAD:** (pending)  
+**Commit HEAD:** `cb08888`  
 **Análisis profundo:** Ver `Documents/ANALISIS_PROFUNDO.md` (35 perspectivas, plan 5 etapas)  
 **Repo:** [pabloeckert/MejoraContactos](https://github.com/pabloeckert/MejoraContactos)  
 **Live:** https://util.mejoraok.com/mejoracontactos/  

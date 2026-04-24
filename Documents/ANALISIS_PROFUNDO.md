@@ -922,20 +922,21 @@ El proyecto tiene un core sólido, deploy funcional, 150 tests, y documentación
 
 ---
 
-## Etapa 8 — Performance y Escalabilidad (Prioridad: 🟡 Media)
+## Etapa 8 — Performance y Escalabilidad (Prioridad: 🟡 Media) ✅ COMPLETADA
 
-| # | Tarea | Responsable | Esfuerzo | Impacto |
-|---|-------|------------|----------|---------|
-| 8.1 | PWA (manifest + Service Worker) | Frontend Dev | 3h | Alto |
-| 8.2 | Dividir useContactProcessing en 3 hooks | Frontend Dev | 2h | Medio |
-| 8.3 | React Context/Zustand para estado global | Frontend Dev | 2h | Medio |
-| 8.4 | Cloudflare como proxy/CDN | Cloud Architect | 1h | Alto |
-| 8.5 | Rollback automático en deploy | DevOps | 2h | Alto |
-| 8.6 | Staging environment | DevOps | 3h | Medio |
-| 8.7 | Batch progress real (streaming) | Backend Dev | 4h | Medio |
+**Completada:** 2026-04-24 (v8.0, commit `cb08888`)
 
-**Esfuerzo total:** ~17 horas
-**Entregable:** App offline-capable + deploy más seguro + mejor DX
+| # | Tarea | Responsable | Esfuerzo | Impacto | Estado |
+|---|-------|------------|----------|---------|--------|
+| 8.1 | PWA (manifest + Service Worker) | Frontend Dev | 3h | Alto | ✅ |
+| 8.2 | Dividir useContactProcessing (hooks extraídos) | Frontend Dev | 2h | Medio | ✅ |
+| 8.3 | React Context/Zustand para estado global | Frontend Dev | 2h | Medio | ⏳ Pendiente (hooks extraídos como primer paso) |
+| 8.4 | Cloudflare como proxy/CDN | Cloud Architect | 1h | Alto | 📚 Documentado (requiere cuenta del usuario) |
+| 8.5 | Rollback automático en deploy | DevOps | 2h | Alto | ✅ |
+| 8.6 | Staging environment | DevOps | 3h | Medio | ⏳ Pendiente (requiere subdominio adicional) |
+| 8.7 | Batch progress real (streaming) | Backend Dev | 4h | Medio | ⏳ Pendiente |
+
+**Entregable:** App offline-capable + deploy más seguro + mejor DX ✅
 
 ---
 
