@@ -2,12 +2,12 @@
 
 > **⚡ Instrucción de actualización:** Cuando el usuario diga **"documentar"**, actualizar este archivo con el estado actual del proyecto, trabajos realizados, pendientes y cualquier cambio relevante. Todos los documentos viven en esta carpeta `Documents/`.
 
-**Última actualización:** 2026-04-24 20:02 GMT+8  
+**Última actualización:** 2026-04-24 20:12 GMT+8  
 **Versión:** v4.5 (limpieza proveedor lovable + plan optimizado)  
-**Commit HEAD:** *(se actualiza al pushear)*  
+**Commit HEAD:** `a724830`  
 **Repo:** [pabloeckert/MejoraContactos](https://github.com/pabloeckert/MejoraContactos)  
 **Live:** https://util.mejoraok.com/mejoracontactos/  
-**Deploy status:** ✅ Todo desplegado y funcionando
+**Deploy status:** ✅ Deploy verificado — HTTP 200 — 150 tests pasan
 
 ---
 
@@ -212,6 +212,8 @@ npx supabase functions deploy google-contacts-auth
 
 ### v4.5 — 2026-04-24 (Limpieza proveedor lovable + plan optimizado)
 
+**Commit:** `a724830`
+
 | Cambio | Tipo | Detalle |
 |--------|------|---------|
 | "lovable" eliminado del Edge Function | 🔴 Fix | Type, default, env map, fallback — todo limpio |
@@ -219,6 +221,7 @@ npx supabase functions deploy google-contacts-auth
 | Tests actualizados | 🟠 Mantenimiento | 150/150 tests pasan, 0 referencias a lovable |
 | Default correct provider → gemini | 🟠 Mejora | Antes era "lovable" (inexistente) |
 | Plan de trabajo reorganizado | 📚 Docs | Etapas claras y optimizadas |
+| Deploy verificado | ✅ Live | HTTP 200 en producción |
 
 ### v4.4 — 2026-04-24 (Fix anon key + modelo OpenRouter)
 
