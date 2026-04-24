@@ -4,7 +4,7 @@
 
 **Última actualización:** 2026-04-24 21:40 GMT+8  
 **Versión:** v7.0 (UX y Onboarding)  
-**Commit HEAD:** (pending)  
+**Commit HEAD:** `a32d710`  
 **Análisis profundo:** Ver `Documents/ANALISIS_PROFUNDO.md` (35 perspectivas, plan 5 etapas)  
 **Repo:** [pabloeckert/MejoraContactos](https://github.com/pabloeckert/MejoraContactos)  
 **Live:** https://util.mejoraok.com/mejoracontactos/  
@@ -378,6 +378,12 @@ Core completo: pipeline IA, dedup O(n), Google Contacts, exportación 6 formatos
 | Privacy Policy | ✅ | /privacy — GDPR-compliant |
 | Terms of Service | ✅ | /terms |
 | Error reporter | ✅ | Utility para tracking de errores (preparado para Sentry) |
+| OnboardingWizard | ✅ | Wizard de 3 pasos, muestra en primera visita |
+| SimpleMode | ✅ | Modo simple/avanzado con toggle en header |
+| EmptyState | ✅ | Componente reutilizable con ilustraciones contextuales |
+| PreviewPanel | ✅ | Vista previa pre-proceso con detección de columnas |
+| SkeletonLoader | ✅ | Table, Card, Dashboard skeletons |
+| Analytics | ✅ | Tracking de eventos en localStorage (preparado para Umami) |
 | Multi-país | ✅ | 21 países con selector |
 | Web Worker | ✅ | batchRuleClean + dedup offloaded |
 | IndexedDB batched | ✅ | Cursor-based, streamContacts() |
