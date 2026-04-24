@@ -2,9 +2,9 @@
 
 > **⚡ Instrucción de actualización:** Cuando el usuario diga **"documentar"**, actualizar este archivo con el estado actual del proyecto, trabajos realizados, pendientes y cualquier cambio relevante. Todos los documentos viven en esta carpeta `Documents/`.
 
-**Última actualización:** 2026-04-24 21:10 GMT+8  
-**Versión:** v5.0 (Health Check + Historial/Deshacer)  
-**Commit HEAD:** `309ea00`  
+**Última actualización:** 2026-04-24 21:30 GMT+8  
+**Versión:** v6.0 (Seguridad y Estabilidad)  
+**Commit HEAD:** `3018f84`  
 **Análisis profundo:** Ver `Documents/ANALISIS_PROFUNDO.md` (35 perspectivas, plan 5 etapas)  
 **Repo:** [pabloeckert/MejoraContactos](https://github.com/pabloeckert/MejoraContactos)  
 **Live:** https://util.mejoraok.com/mejoracontactos/  
@@ -213,6 +213,22 @@ npx supabase functions deploy google-contacts-auth
 
 ## 8. Registro de Cambios
 
+### v6.0 — 2026-04-24 (Seguridad y Estabilidad)
+
+**Commit:** `3018f84`
+
+| Cambio | Tipo | Detalle |
+|--------|------|---------|
+| CSP headers | 🔒 Security | Content-Security-Policy + X-Content-Type-Options + X-Frame-Options + X-XSS-Protection + Referrer-Policy + Permissions-Policy |
+| JWT verification | 🔒 Security | Edge Function verifica token contra Supabase Auth |
+| Input validation | 🔒 Security | Validación de body + sanitización (max 10K contacts, field length limits) |
+| npm audit | 🔧 CI | Warning en pipeline, no bloquea deploy |
+| ErrorBoundary | 🛡️ Stability | React Error Boundary global con error reporter utility |
+| Privacy Policy | 📄 Legal | Página /privacy — GDPR-compliant |
+| Terms of Service | 📄 Legal | Página /terms |
+| Footer | 🎨 UI | Links a Privacy + Terms |
+| Tests | ✅ | 150 tests pasan, build OK |
+
 ### v5.0 — 2026-04-24 (Health Check + Historial/Deshacer)
 
 **Commit:** `9e225c2`
@@ -342,6 +358,13 @@ Core completo: pipeline IA, dedup O(n), Google Contacts, exportación 6 formatos
 | Groq API | ✅ | Verificado HTTP 200 |
 | OpenRouter API | ✅ | Modelo actualizado, verificado |
 | Tests | ✅ | 150 tests, 11 archivos |
+| CSP headers | ✅ | Content-Security-Policy + 5 headers de seguridad |
+| JWT auth | ✅ | Edge Function verifica contra Supabase Auth |
+| Input validation | ✅ | Zod-like validación + sanitización en Edge Function |
+| ErrorBoundary | ✅ | React Error Boundary global |
+| Privacy Policy | ✅ | /privacy — GDPR-compliant |
+| Terms of Service | ✅ | /terms |
+| Error reporter | ✅ | Utility para tracking de errores (preparado para Sentry) |
 | Multi-país | ✅ | 21 países con selector |
 | Web Worker | ✅ | batchRuleClean + dedup offloaded |
 | IndexedDB batched | ✅ | Cursor-based, streamContacts() |
