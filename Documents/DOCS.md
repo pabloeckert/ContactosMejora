@@ -2,9 +2,9 @@
 
 > **⚡ Instrucción de actualización:** Cuando el usuario diga **"documentar"**, actualizar este archivo con el estado actual del proyecto, trabajos realizados, pendientes y cualquier cambio relevante. Todos los documentos viven en esta carpeta `Documents/`.
 
-**Última actualización:** 2026-04-24 21:58 GMT+8  
-**Versión:** v9.0 (Calidad y Testing)  
-**Commit HEAD:** `4ef99cc`  
+**Última actualización:** 2026-04-24 22:04 GMT+8  
+**Versión:** v10.0 (Crecimiento y Monetización)  
+**Commit HEAD:** (pending)  
 **Análisis profundo:** Ver `Documents/ANALISIS_PROFUNDO.md` (35 perspectivas, plan 5 etapas)  
 **Repo:** [pabloeckert/MejoraContactos](https://github.com/pabloeckert/MejoraContactos)  
 **Live:** https://util.mejoraok.com/mejoracontactos/  
@@ -212,6 +212,16 @@ npx supabase functions deploy google-contacts-auth
 | Subdominio DNS | `util.mejoraok.com` → Hostinger |
 
 ## 8. Registro de Cambios
+
+### v10.0 — 2026-04-24 (Crecimiento y Monetización)
+
+| Cambio | Tipo | Detalle |
+|--------|------|---------|
+| Landing page | ✨ Feature | /landing — hero, features, how-it-works, formats, providers, CTA, newsletter |
+| SEO | 📈 Growth | Open Graph completo, canonical URL, keywords, robots, Schema.org (SoftwareApplication) |
+| i18n | 🌍 Localization | Sistema i18n ligero: español (default), inglés, portugués. Auto-detección de locale |
+| Fine-tuning | 🤖 ML | Utilidad para generar JSONL de training desde contactos limpiados por IA |
+| index.html SEO | 📈 Growth | og:url, og:locale, robots, keywords, canonical, Schema.org JSON-LD |
 
 ### v9.0 — 2026-04-24 (Calidad y Testing)
 
