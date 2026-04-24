@@ -904,20 +904,21 @@ El proyecto tiene un core sólido, deploy funcional, 150 tests, y documentación
 
 ---
 
-## Etapa 7 — UX y Onboarding (Prioridad: 🟡 Media-Alta)
+## Etapa 7 — UX y Onboarding (Prioridad: 🟡 Media-Alta) ✅ COMPLETADA
 
-| # | Tarea | Responsable | Esfuerzo | Impacto |
-|---|-------|------------|----------|---------|
-| 7.1 | Wizard de primera vez (3 pasos) | UX Designer + Frontend | 4h | Alto |
-| 7.2 | Modo simple vs avanzado | UX Designer | 3h | Alto |
-| 7.3 | Empty states con ilustraciones | UI Designer | 2h | Medio |
-| 7.4 | Preview antes de procesar | Frontend Dev | 3h | Alto |
-| 7.5 | Copy mejorada (UX Writing) | UX Writer | 2h | Medio |
-| 7.6 | Skeleton loading | UI Designer | 1h | Bajo |
-| 7.7 | Analytics básico (Umami/Plausible) | Growth | 1h | Alto |
+**Completada:** 2026-04-24 (v7.0)
 
-**Esfuerzo total:** ~16 horas
-**Entregable:** Experiencia de primera vez pulida + datos de uso
+| # | Tarea | Responsable | Esfuerzo | Impacto | Estado |
+|---|-------|------------|----------|---------|--------|
+| 7.1 | Wizard de primera vez (3 pasos) | UX Designer + Frontend | 4h | Alto | ✅ |
+| 7.2 | Modo simple vs avanzado | UX Designer | 3h | Alto | ✅ |
+| 7.3 | Empty states con ilustraciones | UI Designer | 2h | Medio | ✅ |
+| 7.4 | Preview antes de procesar | Frontend Dev | 3h | Alto | ✅ |
+| 7.5 | Copy mejorada (UX Writing) | UX Writer | 2h | Medio | ✅ |
+| 7.6 | Skeleton loading | UI Designer | 1h | Bajo | ✅ |
+| 7.7 | Analytics básico | Growth | 1h | Alto | ✅ |
+
+**Entregable:** Experiencia de primera vez pulida + datos de uso ✅
 
 ---
 

@@ -2,9 +2,9 @@
 
 > **⚡ Instrucción de actualización:** Cuando el usuario diga **"documentar"**, actualizar este archivo con el estado actual del proyecto, trabajos realizados, pendientes y cualquier cambio relevante. Todos los documentos viven en esta carpeta `Documents/`.
 
-**Última actualización:** 2026-04-24 21:30 GMT+8  
-**Versión:** v6.0 (Seguridad y Estabilidad)  
-**Commit HEAD:** `3018f84`  
+**Última actualización:** 2026-04-24 21:40 GMT+8  
+**Versión:** v7.0 (UX y Onboarding)  
+**Commit HEAD:** (pending)  
 **Análisis profundo:** Ver `Documents/ANALISIS_PROFUNDO.md` (35 perspectivas, plan 5 etapas)  
 **Repo:** [pabloeckert/MejoraContactos](https://github.com/pabloeckert/MejoraContactos)  
 **Live:** https://util.mejoraok.com/mejoracontactos/  
@@ -212,6 +212,19 @@ npx supabase functions deploy google-contacts-auth
 | Subdominio DNS | `util.mejoraok.com` → Hostinger |
 
 ## 8. Registro de Cambios
+
+### v7.0 — 2026-04-24 (UX y Onboarding)
+
+| Cambio | Tipo | Detalle |
+|--------|------|---------|
+| OnboardingWizard | ✨ Feature | Wizard de 3 pasos en primera visita (importar → limpiar → exportar) |
+| SimpleMode | ✨ Feature | Modo simple vs avanzado — toggle en header, persistencia en localStorage |
+| EmptyState | 🎨 UI | Componente reutilizable con ilustraciones contextuales para tabs vacíos |
+| PreviewPanel | ✨ Feature | Vista previa antes de procesar: columnas detectadas, duplicados potenciales, campos vacíos |
+| SkeletonLoader | 🎨 UI | Table, Card, Dashboard skeletons para loading states |
+| Analytics | 📊 Infra | Utility de tracking en localStorage (eventos de wizard, import, processing, export) |
+| Copy mejorada | ✍️ UX | Empty states con CTAs contextuales, tooltips descriptivos |
+| Index refactor | 🔧 Refactor | Integración de todos los componentes, modo simple/avanzado |
 
 ### v6.0 — 2026-04-24 (Seguridad y Estabilidad)
 

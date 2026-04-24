@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useTheme } from "next-themes";
@@ -7,14 +7,23 @@ import { ProcessingPanel } from "@/components/ProcessingPanel";
 import { ContactsTable } from "@/components/ContactsTable";
 import { ExportPanel } from "@/components/ExportPanel";
 import { DashboardPanel } from "@/components/DashboardPanel";
+import { OnboardingWizard } from "@/components/OnboardingWizard";
+import { EmptyState } from "@/components/EmptyState";
+import { PreviewPanel } from "@/components/PreviewPanel";
+import { SimpleMode } from "@/components/SimpleMode";
+import { analytics } from "@/lib/analytics";
 import { saveContacts, updateContact, deleteContact, clearContacts, saveHistorySnapshot } from "@/lib/db";
 import type { ParsedFile, UnifiedContact } from "@/types/contact";
 import { toast } from "sonner";
-import { Upload, Zap, Users, Download, BarChart3, Settings, Moon, Sun, Activity, History } from "lucide-react";
+import { Upload, Zap, Users, Download, BarChart3, Settings, Moon, Sun, Activity, History, Sparkles, Settings2 } from "lucide-react";
 import { GoogleContactsPanel } from "@/components/GoogleContactsPanel";
 import { ApiKeysPanel } from "@/components/ApiKeysPanel";
 import { HealthCheckPanel } from "@/components/HealthCheckPanel";
 import { HistoryPanel } from "@/components/HistoryPanel";
+import { Button } from "@/components/ui/button";
+
+const ONBOARDING_KEY = "__mc_onboarded__";
+const MODE_KEY = "__mc_simple_mode__";
 
 const Index = () => {
   const [files, setFiles] = useState<ParsedFile[]>([]);
@@ -22,8 +31,38 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState("import");
   const { theme, setTheme } = useTheme();
 
+  // Onboarding state
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    return !localStorage.getItem(ONBOARDING_KEY);
+  });
+
+  // Simple/Advanced mode
+  const [simpleMode, setSimpleMode] = useState(() => {
+    const stored = localStorage.getItem(MODE_KEY);
+    return stored === null ? true : stored === "true";
+  });
+
+  useEffect(() => {
+    localStorage.setItem(MODE_KEY, String(simpleMode));
+  }, [simpleMode]);
+
+  const handleOnboardingComplete = useCallback(() => {
+    localStorage.setItem(ONBOARDING_KEY, "true");
+    setShowOnboarding(false);
+  }, []);
+
+  const handleOnboardingSkip = useCallback(() => {
+    localStorage.setItem(ONBOARDING_KEY, "true");
+    setShowOnboarding(false);
+  }, []);
+
   const handleFilesAdded = useCallback((newFiles: ParsedFile[]) => {
     setFiles((prev) => [...prev, ...newFiles]);
+    // Track analytics
+    for (const f of newFiles) {
+      const ext = f.name.split(".").pop()?.toLowerCase() || "unknown";
+      analytics.fileImported(ext, f.rows.length);
+    }
   }, []);
 
   const handleRemoveFile = useCallback((id: string) => {
@@ -78,6 +117,15 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      {/* Onboarding wizard — shows on first visit */}
+      {showOnboarding && (
+        <OnboardingWizard
+          onComplete={handleOnboardingComplete}
+          onSkip={handleOnboardingSkip}
+          onStartImport={() => setActiveTab("import")}
+        />
+      )}
+
       {/* Header */}
       <header className="sticky top-0 z-50 border-b bg-primary shadow-sm">
         <div className="container flex h-14 items-center justify-between px-4">
@@ -96,6 +144,29 @@ const Index = () => {
                 {uniqueCount.toLocaleString()}
               </Badge>
             )}
+            {/* Simple/Advanced mode toggle */}
+            <button
+              onClick={() => {
+                const next = !simpleMode;
+                setSimpleMode(next);
+                analytics.simpleModeToggled(next);
+              }}
+              className="h-7 px-2 rounded-full flex items-center gap-1 text-[10px] font-medium text-primary-foreground/50 hover:text-primary-foreground hover:bg-primary-foreground/10 transition-all"
+              title={simpleMode ? "Cambiar a modo avanzado" : "Cambiar a modo simple"}
+              aria-label={simpleMode ? "Cambiar a modo avanzado" : "Cambiar a modo simple"}
+            >
+              {simpleMode ? (
+                <>
+                  <Sparkles className="h-3 w-3" />
+                  <span className="hidden sm:inline">Simple</span>
+                </>
+              ) : (
+                <>
+                  <Settings2 className="h-3 w-3" />
+                  <span className="hidden sm:inline">Avanzado</span>
+                </>
+              )}
+            </button>
             {/* Dark mode toggle */}
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
@@ -105,7 +176,7 @@ const Index = () => {
             >
               {theme === 'dark' ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
             </button>
-            {/* Admin icon — tiny, semi-transparent, corner placement */}
+            {/* Admin icon */}
             <button
               onClick={() => setActiveTab("settings")}
               className="h-7 w-7 rounded-full flex items-center justify-center text-primary-foreground/25 hover:text-primary-foreground hover:bg-primary-foreground/10 transition-all"
@@ -120,83 +191,123 @@ const Index = () => {
 
       {/* Main */}
       <main className="flex-1 container px-4 py-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="w-full flex overflow-x-auto flex-nowrap h-11 bg-muted/50 justify-start sm:grid sm:grid-cols-6">
-            <TabsTrigger value="import" className="text-xs gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <Upload className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Importar</span>
-            </TabsTrigger>
-            <TabsTrigger value="process" className="text-xs gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <Zap className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Procesar</span>
-            </TabsTrigger>
-            <TabsTrigger value="results" className="text-xs gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <Users className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Resultados</span>
-            </TabsTrigger>
-            <TabsTrigger value="export" className="text-xs gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <Download className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Exportar</span>
-            </TabsTrigger>
-            <TabsTrigger value="dashboard" className="text-xs gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <BarChart3 className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Dashboard</span>
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="text-xs gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <Settings className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Config</span>
-            </TabsTrigger>
-          </TabsList>
+        {/* Simple mode */}
+        {simpleMode ? (
+          <SimpleMode
+            onSwitchToAdvanced={() => setSimpleMode(false)}
+            onStartImport={() => setActiveTab("import")}
+            files={files}
+            onFilesAdded={handleFilesAdded}
+            onRemoveFile={handleRemoveFile}
+            onProcessingComplete={handleProcessingComplete}
+          />
+        ) : null}
 
-          <TabsContent value="import">
-            <div className="space-y-4">
-              <GoogleContactsPanel onContactsImported={(file) => handleFilesAdded([file])} />
-              <FileDropzone files={files} onFilesAdded={handleFilesAdded} onRemoveFile={handleRemoveFile} />
-            </div>
-          </TabsContent>
+        {/* Advanced mode (full tabs) */}
+        {!simpleMode && (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList className="w-full flex overflow-x-auto flex-nowrap h-11 bg-muted/50 justify-start sm:grid sm:grid-cols-6">
+              <TabsTrigger value="import" className="text-xs gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <Upload className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Importar</span>
+              </TabsTrigger>
+              <TabsTrigger value="process" className="text-xs gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <Zap className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Procesar</span>
+              </TabsTrigger>
+              <TabsTrigger value="results" className="text-xs gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <Users className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Resultados</span>
+              </TabsTrigger>
+              <TabsTrigger value="export" className="text-xs gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <Download className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Exportar</span>
+              </TabsTrigger>
+              <TabsTrigger value="dashboard" className="text-xs gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <BarChart3 className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Dashboard</span>
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="text-xs gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <Settings className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Config</span>
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="process">
-            {files.length === 0 ? (
-              <div className="flex items-center justify-center h-[200px] text-muted-foreground text-sm">
-                Cargá archivos primero en la pestaña Importar
+            <TabsContent value="import">
+              <div className="space-y-4">
+                <GoogleContactsPanel onContactsImported={(file) => handleFilesAdded([file])} />
+                <FileDropzone files={files} onFilesAdded={handleFilesAdded} onRemoveFile={handleRemoveFile} />
+                {files.length > 0 && <PreviewPanel files={files} />}
               </div>
-            ) : (
-              <ProcessingPanel files={files} onProcessingComplete={handleProcessingComplete} onResetAll={handleResetAll} />
-            )}
-          </TabsContent>
+            </TabsContent>
 
-          <TabsContent value="results">
-            {contacts.length === 0 ? (
-              <div className="flex items-center justify-center h-[200px] text-muted-foreground text-sm">
-                Procesá tus archivos para ver los resultados
+            <TabsContent value="process">
+              {files.length === 0 ? (
+                <EmptyState
+                  illustration="process"
+                  title="Primero importá tus contactos"
+                  description="Subí archivos CSV, Excel, VCF o JSON desde la pestaña Importar para empezar a procesar."
+                  action={{ label: "Ir a Importar", onClick: () => setActiveTab("import") }}
+                />
+              ) : (
+                <ProcessingPanel files={files} onProcessingComplete={handleProcessingComplete} onResetAll={handleResetAll} />
+              )}
+            </TabsContent>
+
+            <TabsContent value="results">
+              {contacts.length === 0 ? (
+                <EmptyState
+                  illustration="results"
+                  title="Sin resultados todavía"
+                  description="Procesá tus archivos para ver los contactos limpios y deduplicados acá."
+                  action={files.length > 0 ? { label: "Ir a Procesar", onClick: () => setActiveTab("process") } : { label: "Importar archivos", onClick: () => setActiveTab("import") }}
+                />
+              ) : (
+                <ContactsTable
+                  contacts={contacts}
+                  onUpdateContact={handleUpdateContact}
+                  onDeleteContact={handleDeleteContact}
+                />
+              )}
+            </TabsContent>
+
+            <TabsContent value="export">
+              {contacts.length === 0 ? (
+                <EmptyState
+                  illustration="export"
+                  title="Nada para exportar"
+                  description="Procesá tus contactos primero. Después podés exportarlos en CSV, Excel, VCF, JSON, JSONL o HTML."
+                  action={{ label: "Ir a Importar", onClick: () => setActiveTab("import") }}
+                />
+              ) : (
+                <ExportPanel contacts={contacts} />
+              )}
+            </TabsContent>
+
+            <TabsContent value="dashboard">
+              {contacts.length === 0 ? (
+                <EmptyState
+                  illustration="dashboard"
+                  title="Dashboard vacío"
+                  description="Cuando procesés tus contactos, acá vas a ver métricas de calidad, distribución de scores y más."
+                  action={{ label: "Importar contactos", onClick: () => setActiveTab("import") }}
+                />
+              ) : (
+                <DashboardPanel contacts={contacts} />
+              )}
+            </TabsContent>
+
+            <TabsContent value="settings">
+              <div className="space-y-4">
+                <ApiKeysPanel />
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <HealthCheckPanel />
+                  <HistoryPanel onRestore={handleRestoreFromHistory} />
+                </div>
               </div>
-            ) : (
-              <ContactsTable
-                contacts={contacts}
-                onUpdateContact={handleUpdateContact}
-                onDeleteContact={handleDeleteContact}
-              />
-            )}
-          </TabsContent>
-
-          <TabsContent value="export">
-            <ExportPanel contacts={contacts} />
-          </TabsContent>
-
-          <TabsContent value="dashboard">
-            <DashboardPanel contacts={contacts} />
-          </TabsContent>
-
-          <TabsContent value="settings">
-            <div className="space-y-4">
-              <ApiKeysPanel />
-              <div className="grid gap-4 lg:grid-cols-2">
-                <HealthCheckPanel />
-                <HistoryPanel onRestore={handleRestoreFromHistory} />
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
+            </TabsContent>
+          </Tabs>
+        )}
       </main>
 
       {/* Footer */}
