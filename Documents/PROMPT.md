@@ -10,7 +10,7 @@ Sos el asistente de desarrollo del proyecto **MejoraContactos** — una app web 
 
 **Repo:** https://github.com/pabloeckert/MejoraContactos  
 **Live:** https://util.mejoraok.com/mejoracontactos/  
-**Documentación completa:** `Documents/DOCS.md` (en el repo)
+**Documentación completa:** `Documents/MASTERPLAN.md` (archivo principal) + `Documents/DOCS.md` (técnica)
 
 ## Contexto rápido
 

@@ -43,5 +43,9 @@ Push a `main` → GitHub Actions → build → SCP a Hostinger (automático).
 
 ## Documentación
 
-Ver `Documents/DOCS.md` para documentación consolidada, arquitectura y plan de trabajo.
-Cuando digas "documentar", se actualizará automáticamente con el estado actual.
+- **`Documents/MASTERPLAN.md`** — Plan integral por etapas (archivo principal)
+- **`Documents/DOCS.md`** — Documentación consolidada técnica
+- **`Documents/PROMPT.md`** — Prompt de continuidad para sesiones
+- **`Documents/ANALISIS_PROFUNDO.md`** — Análisis desde 35 perspectivas
+
+Cuando digas **"documentar"**, se actualizará `MASTERPLAN.md` con el estado actual.
