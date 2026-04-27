@@ -2,9 +2,9 @@
 
 > **⚡ Instrucción:** Cuando el usuario diga **"documentar"**, actualizar este archivo con el estado actual del proyecto, trabajos realizados, pendientes y cualquier cambio relevante. Todos los documentos viven en `Documents/`.
 
-**Última actualización:** 2026-04-28 05:58 GMT+8  
-**Versión actual:** v10.2  
-**Commit HEAD:** 178997b  
+**Última actualización:** 2026-04-28 06:05 GMT+8  
+**Versión actual:** v10.3  
+**Commit HEAD:** bb5cee8  
 **Repo:** [pabloeckert/MejoraContactos](https://github.com/pabloeckert/MejoraContactos)  
 **Live:** https://util.mejoraok.com/mejoracontactos/  
 **Tests:** 174 pasando ✅ | Build: OK ✅
@@ -319,8 +319,8 @@ Parseo → Mapeo → Reglas (80%) → IA Limpieza → IA Verificación → IA Co
 | 11.1 | Verificar funcionalidad en producción | SRE, QA | 🔴 Crítica | ✅ Verificado 2026-04-25 |
 | 11.2 | Test pipeline completo con CSV real | QA, Product Owner | 🔴 Crítica | ✅ 27 contactos, 12 dup |
 | 11.3 | Test todos los proveedores IA con keys reales | Backend Dev | 🟡 Alta | ⏳ Necesita keys |
-| 11.4 | Monitoreo: Sentry para errores de producción | SRE | 🟡 Alta | ⏳ |
-| 11.5 | Uptime check (cron que verifique HTTP 200) | DevOps | 🟡 Alta | ⏳ |
+| 11.4 | Monitoreo: Sentry para errores de producción | SRE | 🟡 Alta | ✅ Error Reporter v2 + Edge Function |
+| 11.5 | Uptime check (cron que verifique HTTP 200) | DevOps | 🟡 Alta | ✅ health.json + cron cada 5 min |
 | 11.6 | Cloudflare CDN + SSL | Cloud Architect | 🟢 Media | 📚 Guía lista |
 | 11.7 | Fix bug: Encoding UTF-8 en CSV (BOM + mojibake) | Frontend Dev | 🟡 Alta | ✅ v10.2 |
 | 11.8 | Fix bug: Regex column mapper robusto con acentos | Frontend Dev | 🟡 Alta | ✅ v10.2 |
@@ -431,7 +431,7 @@ npx supabase functions deploy google-contacts-auth
 
 ### Pendientes
 
-- ⏳ Sentry para errores de producción
+- ⏳ Sentry para errores de producción → **Resuelto con Error Reporter v2 + Edge Function**
 - ⏳ Cloudflare WAF
 - ⏳ Cookie consent banner
 - ⏳ npm audit blocking en CI
@@ -443,6 +443,7 @@ npx supabase functions deploy google-contacts-auth
 
 | Versión | Fecha | Cambios principales |
 |---------|-------|-------------------|
+| v10.3 | 2026-04-28 | Monitoreo: error reporter v2, health endpoint, uptime cron |
 | v10.2 | 2026-04-28 | Fix 3 bugs: encoding UTF-8 CSV, regex column mapper, historial snapshot |
 | v10.1 | 2026-04-28 | Documentación consolidada en MASTERPLAN.md único |
 | v10.0 | 2026-04-24 | Landing page, SEO, i18n, fine-tuning JSONL |
