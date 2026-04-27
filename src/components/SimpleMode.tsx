@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FileDropzone } from "@/components/FileDropzone";
 import { PreviewPanel } from "@/components/PreviewPanel";
+import { ProcessingPanel } from "@/components/ProcessingPanel";
 import { analytics } from "@/lib/analytics";
 import type { ParsedFile, UnifiedContact } from "@/types/contact";
 
@@ -22,6 +23,7 @@ export function SimpleMode({
   files,
   onFilesAdded,
   onRemoveFile,
+  onProcessingComplete,
 }: SimpleModeProps) {
   const [step, setStep] = useState<"upload" | "preview" | "processing">("upload");
 
@@ -34,6 +36,10 @@ export function SimpleMode({
     },
     [onFilesAdded]
   );
+
+  const handleReset = useCallback(() => {
+    setStep("upload");
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -93,8 +99,8 @@ export function SimpleMode({
                 <Button
                   className="flex-1"
                   onClick={() => {
+                    analytics.processingStarted("auto", files.reduce((s, f) => s + f.rows.length, 0));
                     setStep("processing");
-                    // Processing is handled by parent via ProcessingPanel
                   }}
                 >
                   <Sparkles className="h-4 w-4 mr-2" />
@@ -108,6 +114,17 @@ export function SimpleMode({
             </CardContent>
           </Card>
         </>
+      )}
+
+      {/* Step 3: Processing */}
+      {step === "processing" && files.length > 0 && (
+        <ProcessingPanel
+          files={files}
+          onProcessingComplete={(contacts) => {
+            onProcessingComplete(contacts);
+          }}
+          onResetAll={handleReset}
+        />
       )}
     </div>
   );

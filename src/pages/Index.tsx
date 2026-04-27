@@ -24,6 +24,10 @@ import { Button } from "@/components/ui/button";
 
 const ONBOARDING_KEY = "__mc_onboarded__";
 const MODE_KEY = "__mc_simple_mode__";
+const COUNTRY_KEY = "__mc_default_country__";
+const PROVIDER_KEY = "__mc_single_provider__";
+
+const TABS = ["import", "process", "results", "export", "dashboard", "settings"] as const;
 
 const Index = () => {
   const [files, setFiles] = useState<ParsedFile[]>([]);
@@ -45,6 +49,50 @@ const Index = () => {
   useEffect(() => {
     localStorage.setItem(MODE_KEY, String(simpleMode));
   }, [simpleMode]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger when typing in inputs
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return;
+      // Don't trigger with modifiers (except shift for some)
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+      const key = e.key.toLowerCase();
+
+      // Number keys 1-6 → switch tabs (only in advanced mode)
+      if (!simpleMode && key >= "1" && key <= "6") {
+        const tabIdx = parseInt(key) - 1;
+        if (TABS[tabIdx]) {
+          setActiveTab(TABS[tabIdx]);
+          e.preventDefault();
+        }
+      }
+
+      // D → toggle dark mode
+      if (key === "d") {
+        setTheme(theme === "dark" ? "light" : "dark");
+        e.preventDefault();
+      }
+
+      // S → toggle simple/advanced mode
+      if (key === "s") {
+        const next = !simpleMode;
+        setSimpleMode(next);
+        analytics.simpleModeToggled(next);
+        e.preventDefault();
+      }
+
+      // ? → show shortcuts help
+      if (key === "?") {
+        toast.info("Atajos: 1-6 tabs · D tema · S modo · R reiniciar", { duration: 4000 });
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [theme, simpleMode, setTheme]);
 
   const handleOnboardingComplete = useCallback(() => {
     localStorage.setItem(ONBOARDING_KEY, "true");
