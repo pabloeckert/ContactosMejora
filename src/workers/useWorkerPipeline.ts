@@ -37,7 +37,7 @@ export function runRuleCleanInWorker(
   if (contacts.length < WORKER_THRESHOLD) {
     // Import inline for small datasets
     return import("@/lib/rule-cleaner").then(({ batchRuleClean }) => {
-      const result = batchRuleClean(contacts as any);
+      const result = batchRuleClean(contacts as Record<string, string>[]);
       return { cleaned: result.cleaned as unknown as RuleCleanResult[], aiIndices: result.aiIndices };
     });
   }
@@ -47,7 +47,7 @@ export function runRuleCleanInWorker(
     if (!worker) {
       // Fallback to inline
       import("@/lib/rule-cleaner").then(({ batchRuleClean }) => {
-        const result = batchRuleClean(contacts as any);
+        const result = batchRuleClean(contacts as Record<string, string>[]);
         resolve({ cleaned: result.cleaned as unknown as RuleCleanResult[], aiIndices: result.aiIndices });
       });
       return;

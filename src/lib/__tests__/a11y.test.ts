@@ -4,13 +4,12 @@
  * semantic HTML, and keyboard navigation patterns.
  */
 import { describe, it, expect } from "vitest";
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 
 describe("Accessibility — Markup Checks", () => {
   it("all interactive elements have accessible names", () => {
     // Read Index.tsx and verify buttons/links have text or aria-label
-    const { readFileSync } = require("fs");
-    const { join } = require("path");
-
     const indexPath = join(process.cwd(), "src/pages/Index.tsx");
     const content = readFileSync(indexPath, "utf-8");
 
@@ -29,10 +28,6 @@ describe("Accessibility — Markup Checks", () => {
   });
 
   it("images have alt text", () => {
-    const { readFileSync } = require("fs");
-    const { join } = require("path");
-    const { readdirSync } = require("fs");
-
     const componentsDir = join(process.cwd(), "src/components");
     const pagesDir = join(process.cwd(), "src/pages");
 
@@ -62,9 +57,6 @@ describe("Accessibility — Markup Checks", () => {
   });
 
   it("form inputs have labels", () => {
-    const { readFileSync } = require("fs");
-    const { join } = require("path");
-
     const files = [
       "src/components/ApiKeysPanel.tsx",
       "src/components/ColumnMapper.tsx",
@@ -90,9 +82,6 @@ describe("Accessibility — Markup Checks", () => {
   });
 
   it("headings use proper hierarchy", () => {
-    const { readFileSync } = require("fs");
-    const { join } = require("path");
-
     const indexPath = join(process.cwd(), "src/pages/Index.tsx");
     const content = readFileSync(indexPath, "utf-8");
 
@@ -107,9 +96,6 @@ describe("Accessibility — Markup Checks", () => {
   });
 
   it("focus management — focusable elements have visible focus styles", () => {
-    const { readFileSync } = require("fs");
-    const { join } = require("path");
-
     const cssPath = join(process.cwd(), "src/index.css");
     const content = readFileSync(cssPath, "utf-8");
 
