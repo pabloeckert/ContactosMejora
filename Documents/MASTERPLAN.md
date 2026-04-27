@@ -2,9 +2,9 @@
 
 > **⚡ Instrucción:** Cuando el usuario diga **"documentar"**, actualizar este archivo con el estado actual del proyecto, trabajos realizados, pendientes y cualquier cambio relevante. Todos los documentos viven en `Documents/`.
 
-**Última actualización:** 2026-04-28 05:50 GMT+8  
-**Versión actual:** v10.1  
-**Commit HEAD:** (pending)  
+**Última actualización:** 2026-04-28 05:58 GMT+8  
+**Versión actual:** v10.2  
+**Commit HEAD:** 178997b  
 **Repo:** [pabloeckert/MejoraContactos](https://github.com/pabloeckert/MejoraContactos)  
 **Live:** https://util.mejoraok.com/mejoracontactos/  
 **Tests:** 174 pasando ✅ | Build: OK ✅
@@ -322,9 +322,9 @@ Parseo → Mapeo → Reglas (80%) → IA Limpieza → IA Verificación → IA Co
 | 11.4 | Monitoreo: Sentry para errores de producción | SRE | 🟡 Alta | ⏳ |
 | 11.5 | Uptime check (cron que verifique HTTP 200) | DevOps | 🟡 Alta | ⏳ |
 | 11.6 | Cloudflare CDN + SSL | Cloud Architect | 🟢 Media | 📚 Guía lista |
-| 11.7 | Fix bug: "Teléfono" en dropdown de mapeo | Frontend Dev | 🟡 Alta | ⏳ |
-| 11.8 | Fix bug: Encoding UTF-8 en samples del mapper | Frontend Dev | 🟢 Media | ⏳ |
-| 11.9 | Fix bug: Historial no se crea con reglas | Backend Dev | 🟢 Media | ⏳ |
+| 11.7 | Fix bug: Encoding UTF-8 en CSV (BOM + mojibake) | Frontend Dev | 🟡 Alta | ✅ v10.2 |
+| 11.8 | Fix bug: Regex column mapper robusto con acentos | Frontend Dev | 🟡 Alta | ✅ v10.2 |
+| 11.9 | Fix bug: Historial snapshot pre-proceso (reglas + IA) | Backend Dev | 🟡 Alta | ✅ v10.2 |
 
 ### 📋 Etapa 12 — UX y Monetización (SEMANA 2)
 
@@ -443,6 +443,7 @@ npx supabase functions deploy google-contacts-auth
 
 | Versión | Fecha | Cambios principales |
 |---------|-------|-------------------|
+| v10.2 | 2026-04-28 | Fix 3 bugs: encoding UTF-8 CSV, regex column mapper, historial snapshot |
 | v10.1 | 2026-04-28 | Documentación consolidada en MASTERPLAN.md único |
 | v10.0 | 2026-04-24 | Landing page, SEO, i18n, fine-tuning JSONL |
 | v9.0 | 2026-04-24 | E2E Playwright, coverage, a11y, perf budget |
