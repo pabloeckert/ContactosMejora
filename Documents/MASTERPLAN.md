@@ -2,9 +2,9 @@
 
 > **⚡ Instrucción:** Cuando el usuario diga **"documentar"**, actualizar este archivo con el estado actual del proyecto, trabajos realizados, pendientes y cualquier cambio relevante. Todos los documentos viven en `Documents/`.
 
-**Última actualización:** 2026-04-28 06:28 GMT+8  
-**Versión actual:** v10.4  
-**Commit HEAD:** 68f4a35  
+**Última actualización:** 2026-04-28 06:30 GMT+8  
+**Versión actual:** v10.5  
+**Commit HEAD:** 0e9aa4c  
 **Repo:** [pabloeckert/MejoraContactos](https://github.com/pabloeckert/MejoraContactos)  
 **Live:** https://util.mejoraok.com/mejoracontactos/  
 **Tests:** 174 pasando ✅ | Build: OK ✅
@@ -443,6 +443,7 @@ npx supabase functions deploy google-contacts-auth
 
 | Versión | Fecha | Cambios principales |
 |---------|-------|-------------------|
+| v10.5 | 2026-04-28 | Keyboard shortcuts, SimpleMode fix (ProcessingPanel integrado) |
 | v10.4 | 2026-04-28 | Cerebras modelo actualizado (llama3.1-8b), proveedores verificados |
 | v10.3 | 2026-04-28 | Monitoreo: error reporter v2, health endpoint, uptime cron |
 | v10.2 | 2026-04-28 | Fix 3 bugs: encoding UTF-8 CSV, regex column mapper, historial snapshot |
