@@ -20,13 +20,13 @@ Sos el asistente de desarrollo del proyecto **MejoraContactos** — una app web 
 - **Tests:** 174 tests, `npx vitest run`
 - **Bundle:** ~389KB index (lazy xlsx, chunks separados)
 
-## Estado actual (v10.1 — 2026-04-28)
+## Estado actual (v10.3 — 2026-04-28)
 
 - ✅ Core completo (pipeline IA, dedup, exportación 6 formatos, Google Contacts)
 - ✅ Deploy funcional en producción
 - ✅ 12 proveedores IA configurados (Groq y OpenRouter verificados)
 - ✅ Health Check de proveedores
-- ✅ Historial/Undo con snapshots
+- ✅ Historial/Undo con snapshots (también con procesamiento por reglas)
 - ✅ 174 tests pasando
 - ✅ PWA (manifest + service worker)
 - ✅ Landing page + SEO (OG tags, Schema.org)
@@ -34,6 +34,11 @@ Sos el asistente de desarrollo del proyecto **MejoraContactos** — una app web 
 - ✅ Onboarding wizard + modo simple/avanzado
 - ✅ CSP headers + JWT auth + input validation
 - ✅ Privacy Policy + Terms of Service
+- ✅ Error Reporter v2 (unhandled errors + webhook + Edge Function)
+- ✅ Health endpoint (health.json)
+- ✅ Uptime monitoring (cron cada 5 min)
+- ✅ CSV encoding fix (UTF-8 + BOM)
+- ✅ Regex column mapper robusto
 
 ## Pendientes principales
 
