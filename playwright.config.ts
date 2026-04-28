@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const PORT = 8080;
+const PORT = process.env.CI ? 4173 : 8080;
 const BASE_URL = `http://localhost:${PORT}`;
 
 export default defineConfig({
@@ -26,9 +26,9 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: "npm run dev",
+    command: process.env.CI ? "npx vite preview --port 4173" : "npm run dev",
     port: PORT,
     reuseExistingServer: !process.env.CI,
-    timeout: 15000,
+    timeout: process.env.CI ? 30000 : 15000,
   },
 });

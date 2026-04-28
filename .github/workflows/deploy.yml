@@ -30,6 +30,13 @@ jobs:
           test -f dist/index.html || (echo "ERROR: dist/index.html not found" && exit 1)
           echo "✅ Build OK — dist/ contains $(find dist -type f | wc -l) files"
 
+      # E2E tests against the production build (fail fast before deploy)
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        run: npx playwright test --reporter=list
+
       # Backup current deployment (for rollback)
       - name: Backup current deployment
         uses: appleboy/ssh-action@v1.2.0
