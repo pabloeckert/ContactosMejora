@@ -132,6 +132,7 @@ src/
 │   ├── phone-validator.ts# Validación telefónica
 │   ├── providers.ts     # Config 12 proveedores IA
 │   ├── rule-cleaner.ts  # Limpieza determinística
+│   ├── usage-limits.ts  # Free tier limits (500/3 lotes)
 │   └── utils.ts         # Utilidades
 ├── workers/
 │   ├── pipeline.worker.ts # Web Worker batch+dedup
@@ -141,6 +142,9 @@ src/
 ├── pages/
 │   ├── Index.tsx        # Página principal (6 tabs)
 │   ├── Landing.tsx      # Landing page SEO (lazy)
+│   ├── Pricing.tsx      # Pricing Free vs Pro (lazy)
+│   ├── Blog.tsx         # Blog listing (lazy)
+│   ├── BlogPost.tsx     # Blog article renderer (lazy)
 │   ├── Privacy.tsx      # Política de privacidad (lazy)
 │   ├── Terms.tsx        # Términos de servicio (lazy)
 │   ├── FAQ.tsx          # FAQ / Help Center (lazy)
@@ -521,6 +525,7 @@ CREATE POLICY "Service role only" ON rate_limits FOR ALL USING (true);
 | Terms of Service | ✅ | /terms |
 | Cookie consent | ✅ | Banner con aceptar/rechazar |
 | Data retention | ✅ | Política documentada en `Documents/DATA_RETENTION.md` |
+| Usage limits | ✅ | Free: 500 contacts/batch, 3 batches/day (localStorage) |
 | .env protection | ✅ | En .gitignore |
 
 ### Pendientes
@@ -569,6 +574,10 @@ CREATE POLICY "Service role only" ON rate_limits FOR ALL USING (true);
 | `src/lib/export-utils.ts` | Exportación 6 formatos | 250 |
 | `src/components/CookieConsent.tsx` | Banner consentimiento cookies | ~40 |
 | `src/pages/FAQ.tsx` | FAQ / Help Center | ~140 |
+| `src/pages/Pricing.tsx` | Pricing Free vs Pro (BYOK) | ~300 |
+| `src/pages/Blog.tsx` | Blog listing + posts metadata | ~130 |
+| `src/pages/BlogPost.tsx` | Blog article renderer (3 posts) | ~400 |
+| `src/lib/usage-limits.ts` | Free tier limits (500 contacts, 3 lotes/día) | ~100 |
 | `supabase/functions/clean-contacts/index.ts` | Edge Function: limpieza IA | ~550 |
 | `supabase/functions/clean-contacts/prompts.ts` | Prompts IA (extraídos) | ~80 |
 | `Documents/MASTERPLAN.md` | Este archivo (doc principal) | — |

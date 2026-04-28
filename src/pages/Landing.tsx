@@ -55,7 +55,7 @@ const FEATURES = [
 
 const PROVIDERS = [
   "Groq", "OpenRouter", "Together AI", "Cerebras", "DeepInfra",
-  "SambaNova", "Mistral", "DeepSeek", "Gemini", "Cloudflare", "Hugging Face", "Nbius"
+  "SambaNova", "Mistral", "DeepSeek", "Gemini", "Cloudflare", "Hugging Face", "Nebius"
 ];
 
 const FORMATS = [
@@ -70,7 +70,7 @@ const STATS = [
   { value: "12", label: "Proveedores de IA" },
   { value: "6", label: "Formatos de exportación" },
   { value: "21", label: "Países soportados" },
-  { value: "188", label: "Tests automatizados" },
+  { value: "199", label: "Tests automatizados" },
 ];
 
 export default function Landing() {
