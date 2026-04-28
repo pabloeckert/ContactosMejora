@@ -107,6 +107,11 @@ export default function Landing() {
                 Ver características
               </a>
             </Button>
+            <Button size="lg" variant="ghost" className="text-base" asChild>
+              <a href={`${import.meta.env.BASE_URL}pricing`}>
+                Precios
+              </a>
+            </Button>
           </div>
 
           {/* Trust badges */}

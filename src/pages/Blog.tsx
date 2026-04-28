@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const POSTS = [
+export const BLOG_POSTS = [
   {
     slug: "como-limpiar-contactos-ia",
     title: "Cómo limpiar tus contactos con IA en 5 minutos",
@@ -41,7 +41,7 @@ export default function Blog() {
         <h1 className="text-3xl font-bold mb-2">Blog</h1>
         <p className="text-muted-foreground mb-8">Tips, guías y novedades sobre limpieza de contactos.</p>
         <div className="space-y-6">
-          {POSTS.map((post) => (
+          {BLOG_POSTS.map((post) => (
             <Card key={post.slug} className="hover:shadow-md transition-shadow">
               <CardHeader>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
