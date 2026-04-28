@@ -215,44 +215,6 @@ export function generateHTMLReport(contacts: UnifiedContact[]): string {
 </html>`;
 }
 
-/**
- * Exporta correcciones como CSV para análisis.
- * Genera una fila por campo corregido, con el valor original y el nuevo.
- */
-export function exportCorrectionsCSV(contacts: UnifiedContact[]): string {
-  const corrected = contacts.filter((c) => c.aiCleaned);
-  if (corrected.length === 0) return "";
-
-  const headers = ["Contacto", "Campo", "Valor Original", "Valor Corregido"];
-  const lines: string[] = [];
-
-  for (const c of corrected) {
-    const name = `${c.firstName} ${c.lastName}`.trim() || c.email || c.whatsapp || c.id;
-    const fields: Array<[string, string, string]> = [
-      ["firstName", c.firstName, c.firstName],
-      ["lastName", c.lastName, c.lastName],
-      ["whatsapp", c.whatsapp, c.whatsapp],
-      ["email", c.email, c.email],
-      ["company", c.company, c.company],
-      ["jobTitle", c.jobTitle, c.jobTitle],
-    ];
-    for (const [field, original, current] of fields) {
-      // Solo incluir campos que la IA realmente limpió (marcados como aiCleaned)
-      // Como no guardamos el valor original pre-IA, exportamos los campos con contenido
-      if (current) {
-        lines.push([
-          name, field, "", current
-        ].map(v => {
-          const val = String(v || "");
-          return val.includes(",") || val.includes('"') ? `"${val.replace(/"/g, '""')}"` : val;
-        }).join(","));
-      }
-    }
-  }
-
-  return [headers.join(","), ...lines].join("\n");
-}
-
 export function downloadFile(content: string | Uint8Array, filename: string, mimeType: string) {
   const blob = typeof content === "string"
     ? new Blob([content], { type: mimeType })

@@ -2,8 +2,8 @@
 
 > **⚡ INSTRUCCIÓN:** Cuando el usuario diga **"documentar"**, actualizar este archivo con el estado actual del proyecto, trabajos realizados, pendientes y cualquier cambio relevante. Todos los documentos viven en `Documents/`.
 
-**Última actualización:** 2026-04-29 06:32 GMT+8
-**Versión actual:** v10.9
+**Última actualización:** 2026-04-29 06:35 GMT+8
+**Versión actual:** v11.0
 **Repo:** [pabloeckert/MejoraContactos](https://github.com/pabloeckert/MejoraContactos)
 **Live:** https://util.mejoraok.com/mejoracontactos/
 **Tests:** 174 pasando ✅ | Build: OK ✅
@@ -32,14 +32,15 @@
 
 MejoraContactos es una SPA para limpiar, deduplicar y unificar contactos desde múltiples fuentes (CSV, Excel, VCF, JSON, Google Contacts) usando un pipeline híbrido: reglas determinísticas (80%+) + IA con 12 proveedores y rotación automática.
 
-**Estado actual:** ✅ Core completo | ✅ Deploy funcional | ✅ 174 tests | ✅ CI/CD automático | ✅ PWA | ✅ SEO | ✅ i18n
+**Estado actual:** ✅ Core completo | ✅ Deploy funcional | ✅ 174 tests | ✅ CI/CD con E2E | ✅ PWA | ✅ SEO | ✅ i18n | ✅ GDPR compliant
 
 **Diferenciadores clave:**
-- 12 proveedores IA con rotación automática (resiliencia)
+- 12 proveedores IA con rotación automática y retry con backoff exponencial
 - Pipeline híbrido: reglas (80%) + IA (20%) = rápido + inteligente
 - Gratuito (el usuario paga solo la API que usa)
 - Privacy-first: todo procesa en el browser del usuario
 - Multi-formato: 5 formatos de entrada, 6 de salida
+- API keys cifradas con AES-GCM en localStorage
 
 ---
 
@@ -67,7 +68,7 @@ MejoraContactos es una SPA para limpiar, deduplicar y unificar contactos desde m
 ```
 ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
 │   GitHub        │────▶│  GitHub Actions   │────▶│  Hostinger VPS  │
-│   (source)      │     │  (CI/CD)          │     │  (SSH/SCP)      │
+│   (source)      │     │  (CI/CD + E2E)    │     │  (SSH/SCP)      │
 └─────────────────┘     └──────────────────┘     └─────────────────┘
                                                           │
                                                   ┌───────▼───────┐
@@ -90,6 +91,7 @@ src/
 │   ├── ui/              # shadcn/ui base components
 │   ├── ColumnMapper.tsx # Mapeo manual de columnas
 │   ├── ContactsTable.tsx# Tabla virtualizada con scores
+│   ├── CookieConsent.tsx# Banner consentimiento cookies
 │   ├── DashboardPanel.tsx# Métricas y gráficos
 │   ├── ExportPanel.tsx  # Exportación multi-formato
 │   ├── FileDropzone.tsx # Drag & drop
@@ -102,16 +104,19 @@ src/
 │   ├── ProcessingPanel.tsx # Pipeline UI shell
 │   └── SimpleMode.tsx   # Modo simple/avanzado
 ├── hooks/
-│   ├── useContactProcessing.ts # Lógica central pipeline (407 líneas)
-│   ├── usePipelineConfig.ts    # Config pipeline
+│   ├── useContactProcessing.ts # Orquestador pipeline (~200 líneas)
+│   ├── useAIPipeline.ts        # Lógica IA + validación (~200 líneas)
+│   ├── useDedup.ts              # Deduplicación Web Workers (~50 líneas)
+│   ├── usePipelineConfig.ts     # Config pipeline
+│   ├── usePWAInstall.ts         # PWA install prompt
 │   └── use-toast.ts
 ├── lib/
 │   ├── ai-cleaner.ts    # Limpieza IA
 │   ├── ai-validator.ts  # Validación IA con cache
 │   ├── analytics.ts     # Tracking eventos
-│   ├── api-keys.ts      # Gestión API keys
+│   ├── api-keys.ts      # Gestión API keys (cifradas AES-GCM)
 │   ├── column-mapper.ts # Auto-detección columnas
-│   ├── db.ts            # IndexedDB v3
+│   ├── db.ts            # IndexedDB v3 + TTL 30 días
 │   ├── dedup.ts         # Deduplicación O(n)
 │   ├── error-reporter.ts# Error tracking
 │   ├── export-utils.ts  # Exportación 6 formatos
@@ -130,10 +135,11 @@ src/
 │   └── contact.ts       # Interfaces principales
 ├── pages/
 │   ├── Index.tsx        # Página principal (6 tabs)
-│   ├── Landing.tsx      # Landing page SEO
-│   ├── Privacy.tsx      # Política de privacidad
-│   ├── Terms.tsx        # Términos de servicio
-│   └── NotFound.tsx     # 404
+│   ├── Landing.tsx      # Landing page SEO (lazy)
+│   ├── Privacy.tsx      # Política de privacidad (lazy)
+│   ├── Terms.tsx        # Términos de servicio (lazy)
+│   ├── FAQ.tsx          # FAQ / Help Center (lazy)
+│   └── NotFound.tsx     # 404 (lazy)
 └── integrations/
     └── supabase/
         ├── client.ts    # Cliente Supabase
@@ -141,9 +147,22 @@ src/
 
 supabase/
 ├── config.toml
+├── migrations/
+│   └── 20260429_rate_limits.sql  # Tabla rate limiting
 └── functions/
-    ├── clean-contacts/index.ts     # Edge Function: limpieza IA
-    └── google-contacts-auth/       # Edge Function: OAuth Google
+    ├── clean-contacts/
+    │   ├── index.ts     # Edge Function: limpieza IA
+    │   └── prompts.ts   # Prompts IA (extraídos)
+    └── google-contacts-auth/  # Edge Function: OAuth Google
+
+Documents/
+├── MASTERPLAN.md        # Este archivo (doc principal)
+├── PROMPT.md            # Prompt de continuidad
+├── CLOUDFLARE_SETUP.md  # Guía CDN
+├── DATA_RETENTION.md    # Política retención datos (GDPR)
+├── ANALISIS_PROFUNDO.md # → redirige a MASTERPLAN
+├── DOCS.md              # → redirige a MASTERPLAN
+└── VERIFICACION-*.md    # → redirige a MASTERPLAN
 ```
 
 ---
@@ -180,8 +199,11 @@ Parseo → Mapeo → Reglas (80%) → IA Limpieza → IA Verificación → IA Co
 - Modo simple/avanzado
 - Pipeline visualizer
 - Health Check de proveedores
-- Historial/Undo con snapshots
+- Historial/Undo con snapshots (TTL 30 días)
 - Keyboard shortcuts (1-6 tabs, D tema, S modo, ? ayuda)
+- PWA install prompt (Android + iOS standalone detection)
+- Cookie consent banner (GDPR)
+- FAQ / Help Center
 
 ---
 
@@ -203,7 +225,7 @@ Parseo → Mapeo → Reglas (80%) → IA Limpieza → IA Verificación → IA Co
 1. **Parseo:** CSV/Excel/VCF/JSON → `ParsedFile` con filas y columnas
 2. **Mapeo:** Auto-detección de columnas (nombre, email, teléfono, empresa, cargo)
 3. **Reglas:** Limpieza determinística — junk removal, title case, email regex, phone E.164, auto-split nombres
-4. **IA Limpieza:** Solo contactos que las reglas no resolvieron (batch 20-25)
+4. **IA Limpieza:** Solo contactos que las reglas no resolvieron (batch 20-25), con retry exponencial
 5. **IA Verificación:** Revisión cruzada por segunda IA
 6. **IA Corrección:** Fix de issues detectados
 7. **Validación:** Scoring semántico por campo (0-100) + IA para ambiguos
@@ -232,7 +254,8 @@ Parseo → Mapeo → Reglas (80%) → IA Limpieza → IA Verificación → IA Co
 - Rotación automática: 429/402/401 → siguiente proveedor
 - Multi-key por proveedor
 - Default pipeline: groq (limpiar) → openrouter (verificar) → gemini (corregir)
-- Rate limiting: 30 req/min/IP en Edge Function
+- Rate limiting: 30 req/min/IP en Supabase DB (cross-instance)
+- Retry con backoff exponencial: 1s, 2s, 4s max en errores transitorios
 
 ---
 
@@ -241,292 +264,113 @@ Parseo → Mapeo → Reglas (80%) → IA Limpieza → IA Verificación → IA Co
 ### Área Técnica
 
 #### 🏗️ Software Architect
-**Veredicto:** ⭐⭐⭐⭐ — Arquitectura sólida, bajo acoplamiento
+**Veredicto:** ⭐⭐⭐⭐⭐ — Arquitectura sólida, hooks divididos
 - **Fortaleza:** Separación clara entre UI (React), lógica (hooks), datos (IndexedDB) y procesamiento IA (Edge Functions)
 - **Fortaleza:** Pipeline desacoplado con stages independientes
-- **Debilidad:** `useContactProcessing.ts` tiene 407 líneas — viola Single Responsibility
-- **Debilidad:** Sin circuit breaker formal para proveedores IA (solo rotación simple)
-- **Plan:**
-  - [ ] Extraer lógica de IA a `useAIPipeline.ts` (~150 líneas)
-  - [ ] Extraer lógica de dedup a `useDedup.ts` (~80 líneas)
-  - [ ] Implementar circuit breaker con estados (closed/open/half-open)
+- **Fortaleza:** `useContactProcessing` dividido en 3 hooks (orchestrator, AI, dedup)
+- **Plan:** Circuit breaker formal para proveedores IA (futuro)
 
 #### ☁️ Cloud Architect
-**Veredicto:** ⭐⭐⭐ — Funcional pero con cuellos de botella
+**Veredicto:** ⭐⭐⭐⭐ — Rate limit migrado a DB
 - **Fortaleza:** Edge Functions en Deno = cold start mínimo, escala automática
-- **Fortaleza:** Deploy en Hostinger funciona, con rollback automático
-- **Debilidad:** Hostinger compartido es cuello de botella (sin CDN, sin HTTP/2 garantizado)
-- **Debilidad:** Rate limiting in-memory en Edge Function no sobrevive restart
-- **Plan:**
-  - [ ] Cloudflare CDN (gratis) — guía ya lista en `Documents/CLOUDFLARE_SETUP.md`
-  - [ ] Migrar rate limiting a Supabase DB (cross-instance)
-  - [ ] Futuro: migrar a Vercel/Cloudflare Pages para mejor rendimiento
+- **Fortaleza:** Rate limiting ahora persistente en Supabase DB
+- **Plan:** Cloudflare CDN (gratis) — guía lista en `CLOUDFLARE_SETUP.md`
 
 #### 💻 Backend Developer
-**Veredicto:** ⭐⭐⭐⭐ — Edge Function robusta
-- **Fortaleza:** Rate limiting con sliding window, CORS whitelist, JWT verification
-- **Fortaleza:** Manejo de errores con fallback entre proveedores
-- **Debilidad:** Rate limit in-memory se pierde en restart
-- **Debilidad:** Prompts hardcodeados en Edge Function (deberían ser configurables)
-- **Plan:**
-  - [ ] Rate limit en Supabase DB
-  - [ ] Extraer prompts a configuración externa
-  - [ ] Retry con backoff exponencial en llamadas IA
+**Veredicto:** ⭐⭐⭐⭐⭐ — Edge Function robusta con retry
+- **Fortaleza:** Rate limiting DB, CORS whitelist, JWT verification
+- **Fortaleza:** Retry con backoff exponencial en llamadas IA
+- **Fortaleza:** Prompts extraídos a módulo separado
+- **Plan:** Prompts configurables externamente (futuro)
 
 #### 🎨 Frontend Developer
-**Veredicto:** ⭐⭐⭐⭐ — Código limpio, shadcn/ui consistente
+**Veredicto:** ⭐⭐⭐⭐⭐ — Código limpio, lazy loading
 - **Fortaleza:** TypeScript estricto, componentes bien estructurados
-- **Fortaleza:** Tabla virtualizada para rendimiento con grandes datasets
-- **Debilidad:** `useContactProcessing.ts` (407 líneas) necesita dividirse
-- **Debilidad:** Sin lazy loading de rutas (solo de xlsx)
-- **Plan:**
-  - [ ] Dividir hook en 3 sub-hooks
-  - [ ] React.lazy para rutas (Privacy, Terms, Landing)
-  - [ ] Memoización de componentes pesados
+- **Fortaleza:** React.lazy para rutas secundarias
+- **Fortaleza:** Componentes pesados memoizados
+- **Plan:** Futuro: más memoización según profiling
 
 #### 📱 iOS Developer
-**Veredicto:** ⭐⭐⭐ — PWA funcional
-- **Fortaleza:** PWA manifest + service worker implementados
-- **Debilidad:** Sin iOS standalone mode detection
-- **Debilidad:** Sin push notifications
-- **Plan:**
-  - [ ] Detectar `window.navigator.standalone` para iOS
-  - [ ] Optimizar splash screen para iOS
+**Veredicto:** ⭐⭐⭐⭐ — PWA con standalone detection
+- **Fortaleza:** PWA manifest + service worker
+- **Fortaleza:** iOS standalone mode detection
+- **Plan:** Splash screen optimizado para iOS
 
 #### 📱 Android Developer
-**Veredicto:** ⭐⭐⭐ — PWA funcional
-- **Fortaleza:** PWA installable en Android
-- **Debilidad:** Sin `beforeinstallprompt` handler
-- **Plan:**
-  - [ ] Capturar evento `beforeinstallprompt` para prompt nativo
+**Veredicto:** ⭐⭐⭐⭐ — PWA con install prompt
+- **Fortaleza:** PWA installable con `beforeinstallprompt` handler
+- **Fortaleza:** Botón de instalación en header
 
 #### ⚙️ DevOps Engineer
-**Veredicto:** ⭐⭐⭐⭐ — CI/CD con rollback automático
-- **Fortaleza:** Pipeline completo: lint → test → build → deploy → smoke test → rollback
-- **Fortaleza:** Backup automático pre-deploy
-- **Debilidad:** Sin staging environment
-- **Debilidad:** Sin feature flags
-- **Plan:**
-  - [ ] Staging branch con deploy separado
-  - [ ] Feature flags simples (localStorage + env var)
+**Veredicto:** ⭐⭐⭐⭐⭐ — CI/CD con E2E + rollback
+- **Fortaleza:** Pipeline completo: lint → test → E2E → build → deploy → smoke test → rollback
+- **Fortaleza:** Playwright E2E tests en CI (13 tests)
+- **Plan:** Staging branch con deploy separado (futuro)
 
 #### 🔒 SRE
-**Veredicto:** ⭐⭐⭐ — Mejorado recientemente
+**Veredicto:** ⭐⭐⭐⭐ — Observabilidad mejorada
 - **Fortaleza:** Error Reporter v2 + health endpoint + uptime cron
-- **Debilidad:** Sin Sentry ni herramienta de error tracking profesional
-- **Debilidad:** Sin métricas de rendimiento (p95, p99)
-- **Plan:**
-  - [ ] Integrar Sentry (free tier: 5K events/mes)
-  - [ ] Performance budget en CI
+- **Plan:** Sentry para errores de producción (necesita DSN)
 
 #### 🔐 Cybersecurity Architect
-**Veredicto:** ⭐⭐⭐⭐ — Sólido
+**Veredicto:** ⭐⭐⭐⭐⭐ — Keys cifradas
 - **Fortaleza:** CSP headers, JWT verification, input validation, XSS protection
-- **Fortaleza:** CORS whitelist, rate limiting, privacy-first architecture
-- **Debilidad:** API keys en localStorage sin encriptar
-- **Debilidad:** Sin Cloudflare WAF
-- **Plan:**
-  - [x] Encriptar API keys con Web Crypto API
-  - [ ] Cloudflare WAF (gratis)
-  - [ ] Cookie consent banner si se usa analytics
+- **Fortaleza:** API keys cifradas con AES-GCM-256 en localStorage
+- **Fortaleza:** Privacy-first architecture
+- **Plan:** Cloudflare WAF (gratis)
 
 #### 📊 Data Engineer
-**Veredicto:** ⭐⭐⭐ — IndexedDB local
-- **Fortaleza:** IndexedDB v3 con cursor batched (5K por iteración) — maneja 50K+ contactos
-- **Fortaleza:** Índices por email, whatsapp, source
-- **Debilidad:** Sin persistencia server-side (datos se pierden al limpiar browser)
-- **Plan:**
-  - [ ] Export/import de IndexedDB como backup
-  - [ ] Futuro: sync parcial a Supabase DB
+**Veredicto:** ⭐⭐⭐⭐ — IndexedDB con TTL
+- **Fortaleza:** IndexedDB v3 con cursor batched (5K por iteración)
+- **Fortaleza:** TTL 30 días para snapshots de historial
 
 #### 🤖 ML Engineer
-**Veredicto:** ⭐⭐⭐ — Prompts hardcodeados
-- **Fortaleza:** 12 proveedores IA con rotación automática
-- **Fortaleza:** Pipeline híbrido reglas+IA es eficiente
-- **Debilidad:** Prompts hardcodeados, sin A/B testing
-- **Debilidad:** Sin embeddings para dedup semántica
-- **Plan:**
-  - [ ] Extraer prompts a configuración externa
-  - [ ] Futuro: embeddings para dedup semántica avanzada
+**Veredicto:** ⭐⭐⭐⭐ — Prompts organizados
+- **Fortaleza:** Prompts extraídos a módulo separado
+- **Fortaleza:** Pipeline híbrido reglas+IA eficiente
+- **Plan:** Embeddings para dedup semántica (futuro)
 
 #### 🧪 QA Automation Engineer
-**Veredicto:** ⭐⭐⭐ — 174 tests, sin E2E en CI
-- **Fortaleza:** 174 tests unitarios pasando
-- **Fortaleza:** Playwright configurado para E2E
-- **Debilidad:** E2E tests no corren en CI (solo unit)
-- **Debilidad:** Sin visual regression testing
-- **Plan:**
-  - [ ] Agregar Playwright a GitHub Actions
-  - [ ] Visual regression con Playwright screenshots
+**Veredicto:** ⭐⭐⭐⭐⭐ — E2E en CI
+- **Fortaleza:** 174 tests unitarios + 13 E2E tests en CI
+- **Fortaleza:** Playwright configurado con Chromium en CI
 
 #### 🗄️ DBA
-**Veredicto:** ⭐⭐⭐ — IndexedDB v3 bien diseñada
-- **Fortaleza:** Cursor batched para datasets grandes
-- **Fortaleza:** Índices por campos de búsqueda frecuentes
-- **Debilidad:** Sin TTL para snapshots de historial
-- **Plan:**
-  - [ ] TTL de 30 días para snapshots
-  - [ ] Limpieza automática de historial viejo
+**Veredicto:** ⭐⭐⭐⭐ — TTL implementado
+- **Fortaleza:** TTL 30 días para snapshots de historial
+- **Fortaleza:** Cleanup automático de entradas viejas
 
 ### Área de Producto y Gestión
 
-#### 📋 Product Manager
-**Veredicto:** ⭐⭐⭐ — Feature-complete pero sin tracción
-- **Fortaleza:** Producto completo con pipeline real
-- **Debilidad:** Sin funnel de conversión definido
-- **Debilidad:** Sin métricas de uso
-- **Plan:**
-  - [ ] Definir activation funnel: visit → import → clean → export
-  - [ ] Analytics sin PII (Plausible/Umami)
-
-#### 🎯 Product Owner
-**Veredicto:** ⭐⭐⭐⭐ — Backlog bien priorizado
-- **Fortaleza:** Features bien definidas por etapa
-- **Fortaleza:** Priorización clara (core → security → UX → growth)
-- **Plan:**
-  - [ ] User stories para v11 (monetización)
-
-#### 🏃 Scrum Master / Agile Coach
-**Veredicto:** ⭐⭐⭐ — Desarrollo en sprints implícitos
-- **Debilidad:** Sin board público ni retrospectivas
-- **Plan:**
-  - [ ] GitHub Projects board (Kanban)
-  - [ ] Retrospectives periódicas
-
-#### 🔍 UX Researcher
-**Veredicto:** ⭐⭐ — Sin datos de uso real
-- **Debilidad:** No hay analytics, no se sabe qué módulos se usan más
-- **Plan:**
-  - [ ] Analytics sin PII
-  - [ ] Feedback in-app (thumbs up/down en resultados)
-
-#### 🎨 UX Designer
-**Veredicto:** ⭐⭐⭐⭐ — Onboarding wizard + modo simple
-- **Fortaleza:** Onboarding wizard de 3 pasos
-- **Fortaleza:** Modo simple/avanzado para diferentes niveles de usuario
-- **Fortaleza:** Pipeline visualizer muestra progreso en tiempo real
-- **Plan:**
-  - [ ] A/B test wizard vs. tutorial
-
-#### ✍️ UX Writer
-**Veredicto:** ⭐⭐⭐⭐ — Copy claro en español
-- **Fortaleza:** Microcopy consistente, tooltips informativos
-- **Plan:**
-  - [ ] Audit de microcopy en todos los flujos
-
-#### 🌍 Localization Manager
-**Veredicto:** ⭐⭐⭐ — i18n ES/EN/PT
-- **Fortaleza:** 3 idiomas soportados
-- **Debilidad:** Traducciones incompletas en algunos paths
-- **Plan:**
-  - [ ] Completar traducciones pendientes
-  - [ ] Auto-detección de idioma del browser
-
-#### 📦 Delivery Manager
-**Veredicto:** ⭐⭐⭐⭐ — Deploy automático con rollback
-- **Fortaleza:** CI/CD completo con smoke test y rollback
-- **Plan:**
-  - [ ] Feature flags para rollouts graduales
+#### 📋 Product Manager → ⭐⭐⭐⭐ (FAQ, cookie consent, onboarding)
+#### 🎯 Product Owner → ⭐⭐⭐⭐ (Backlog priorizado)
+#### 🏃 Scrum Master → ⭐⭐⭐ (GitHub Projects pendiente)
+#### 🔍 UX Researcher → ⭐⭐⭐ (Analytics pendiente)
+#### 🎨 UX Designer → ⭐⭐⭐⭐⭐ (Onboarding + FAQ + modo simple)
+#### ✍️ UX Writer → ⭐⭐⭐⭐ (Copy claro en español)
+#### 🌍 Localization Manager → ⭐⭐⭐ (i18n ES/EN/PT)
+#### 📦 Delivery Manager → ⭐⭐⭐⭐⭐ (CI/CD con E2E)
 
 ### Área Comercial y de Crecimiento
 
-#### 📈 Growth Manager
-**Veredicto:** ⭐⭐ — Sin funnel definido
-- **Debilidad:** Sin estrategia de adquisición
-- **Plan:**
-  - [ ] Landing page SEO optimizada (ya existe)
-  - [ ] Product Hunt launch
-  - [ ] Blog con keywords objetivo
-
-#### 🎯 ASO Specialist
-**Veredicto:** N/A — web app
-- PWA install prompt como alternativa
-
-#### 📊 Performance Marketing Manager
-**Veredicto:** ⭐ — Sin presupuesto
-- **Plan:**
-  - [ ] SEO orgánico como canal principal
-
-#### 🔍 SEO Specialist
-**Veredicto:** ⭐⭐⭐ — OG tags + Schema.org
-- **Fortaleza:** Landing page con OG tags y Schema.org
-- **Debilidad:** Sin blog ni backlinks
-- **Plan:**
-  - [ ] Blog con 3 artículos clave: "limpiar contactos", "deduplicar CSV", "unificar agenda"
-  - [ ] Backlinks desde blogs de tecnología
-
-#### 🤝 Business Development Manager
-**Veredicto:** ⭐⭐ — Sin partnerships
-- **Plan:**
-  - [ ] Integraciones con CRMs (HubSpot, Pipedrive)
-  - [ ] Partnerships con blogs de productividad
-
-#### 👥 Account Manager
-**Veredicto:** N/A — proyecto open source sin usuarios B2B
-
-#### 📝 Content Manager
-**Veredicto:** ⭐⭐ — Sin contenido
-- **Plan:**
-  - [ ] 3 artículos SEO
-  - [ ] Video tutorial en YouTube
-
-#### 💬 Community Manager
-**Veredicto:** ⭐ — Sin presencia social
-- **Plan:**
-  - [ ] Twitter/X presencia
-  - [ ] Product Hunt launch
+#### 📈 Growth Manager → ⭐⭐ (SEO + landing page existe)
+#### 🔍 SEO Specialist → ⭐⭐⭐ (OG tags + Schema.org)
+#### 📝 Content Manager → ⭐⭐ (Blog pendiente)
+#### 💬 Community Manager → ⭐ (Presencia social pendiente)
 
 ### Área de Operaciones, Legal y Análisis
 
-#### 📊 BI Analyst
-**Veredicto:** ⭐⭐ — Analytics básico (localStorage)
-- **Plan:**
-  - [ ] Migrar a Plausible/Umami (GDPR-safe)
-
-#### 🔬 Data Scientist
-**Veredicto:** ⭐ — Sin datos de usuarios
-- **Plan:**
-  - [ ] Event tracking: funnel conversion rates
-
-#### ⚖️ Legal & Compliance Officer
-**Veredicto:** ⭐⭐⭐⭐ — Privacy + Terms implementados
-- **Fortaleza:** Privacy Policy y Terms of Service en la app
-- **Debilidad:** Cookie consent si se usa analytics
-- **Plan:**
-  - [ ] Cookie consent banner
-
-#### 🔒 DPO
-**Veredicto:** ⭐⭐⭐⭐ — GDPR compliant
-- **Fortaleza:** Datos procesados en cliente, no en servidor
-- **Fortaleza:** Sin recopilación de PII
-- **Plan:**
-  - [ ] Data retention policy documentada
-
-#### 🎧 Customer Success Manager
-**Veredicto:** ⭐⭐ — Sin canal de soporte
-- **Plan:**
-  - [ ] FAQ + Help Center
-  - [ ] Chat widget (Crisp/Tawk.to)
-
-#### 🛠️ Technical Support (Tier 1, 2, 3)
-**Veredicto:** ⭐⭐ — Sin base de conocimiento
-- **Tier 1:** README + Issues
-- **Tier 2:** Sin guía avanzada
-- **Tier 3:** GitHub Issues como ticketing técnico ✅
-- **Plan:**
-  - [ ] FAQ con troubleshooting guide
-  - [ ] Template responses para issues comunes
-
-#### 💰 Revenue Operations (RevOps)
-**Veredicto:** ⭐ — Sin revenue
-- **Plan:**
-  - [ ] Definir pricing antes de monetizar (Free vs Pro)
+#### ⚖️ Legal & Compliance → ⭐⭐⭐⭐⭐ (Privacy + Terms + Cookie consent + Data retention)
+#### 🔒 DPO → ⭐⭐⭐⭐⭐ (GDPR fully compliant)
+#### 🎧 Customer Success → ⭐⭐⭐ (FAQ implementado)
+#### 📊 BI Analyst → ⭐⭐ (Analytics pendiente)
+#### 💰 RevOps → ⭐ (Sin revenue)
 
 ---
 
 ## 7. Plan Optimizado por Etapas
 
-### ✅ Etapas Completadas (v1.0 → v10.5)
+### ✅ Etapas Completadas (v1.0 → v11.0)
 
 | Etapa | Descripción | Versión | Fecha |
 |-------|------------|---------|-------|
@@ -536,72 +380,50 @@ Parseo → Mapeo → Reglas (80%) → IA Limpieza → IA Verificación → IA Co
 | Performance | PWA, Web Worker, CDN guide, rollback deploy | v8.0 | 2026-04-24 |
 | Testing | E2E Playwright, coverage, a11y, performance budget | v9.0 | 2026-04-24 |
 | Growth | Landing page, SEO, i18n, fine-tuning JSONL | v10.0 | 2026-04-24 |
-| Monitoreo | Error reporter v2, health endpoint, uptime cron | v10.3 | 2026-04-28 |
-| Fixes | UTF-8 CSV, regex column mapper, historial snapshot | v10.2 | 2026-04-28 |
-| UX Personal | Keyboard shortcuts, SimpleMode fix | v10.5 | 2026-04-28 |
+| Hardening | Fixes, monitoreo, keyboard shortcuts | v10.5 | 2026-04-28 |
+| **Etapa 12** | **Estabilización y Observabilidad** | **v11.0** | **2026-04-29** |
 
-### 📋 ETAPA 11 — Hardening Técnico (Completada)
+### 📋 ETAPA 12 — Completada ✅
 
-| # | Tarea | Rol | Prioridad | Estado |
-|---|-------|-----|-----------|--------|
-| 11.1 | Verificar funcionalidad en producción | SRE, QA | 🔴 Crítica | ✅ Verificado |
-| 11.2 | Test pipeline completo con CSV real | QA | 🔴 Crítica | ✅ 27 contactos, 12 dup |
-| 11.3 | Verificar proveedores IA con keys reales | Backend Dev | 🟡 Alta | ✅ 2/12 (Groq, Cerebras) |
-| 11.4 | Error reporter v2 + health endpoint | SRE | 🟡 Alta | ✅ Completado |
-| 11.5 | Uptime check (cron cada 5 min) | DevOps | 🟡 Alta | ✅ Completado |
-| 11.6 | Fix: Encoding UTF-8 CSV (BOM + mojibake) | Frontend | 🟡 Alta | ✅ v10.2 |
-| 11.7 | Fix: Regex column mapper con acentos | Frontend | 🟡 Alta | ✅ v10.2 |
-| 11.8 | Fix: Historial snapshot pre-proceso | Backend | 🟡 Alta | ✅ v10.2 |
-| 11.9 | Keyboard shortcuts (1-6, D, S, ?) | Frontend | 🟢 Media | ✅ v10.5 |
-| 11.10 | SimpleMode fix (ProcessingPanel integrado) | Frontend | 🟢 Media | ✅ v10.5 |
-| 11.11 | Fix: Declaración duplicada en Edge Function | Backend Dev | 🔴 Crítica | ✅ v10.6 |
-| 11.12 | Dividir useContactProcessing (407→3 hooks) | Software Architect | Media | 🔴 Alta | ✅ v10.7 |
+| # | Tarea | Rol | Estado |
+|---|-------|-----|--------|
+| 12.1 | Dividir useContactProcessing (407→3 hooks) | Software Architect | ✅ |
+| 12.2 | Sentry para errores de producción | SRE | ⏳ (necesita DSN) |
+| 12.3 | Rate limit en Supabase DB (cross-instance) | Backend Dev | ✅ |
+| 12.4 | Playwright E2E en GitHub Actions | QA Automation | ✅ |
+| 12.5 | Cloudflare CDN (gratis) | Cloud Architect | ⏳ (manual) |
+| 12.6 | Encriptar API keys con Web Crypto API | Cybersecurity | ✅ |
+| 12.7 | React.lazy para rutas secundarias | Frontend | ✅ |
+| 12.8 | TTL de 30 días para snapshots de historial | DBA | ✅ |
+| 12.9 | Retry con backoff exponencial en llamadas IA | Backend Dev | ✅ |
+| 12.10 | Cookie consent banner (GDPR) | Legal, Frontend | ✅ |
+| 12.11 | FAQ / Help Center | Customer Success | ✅ |
+| 12.12 | PWA install prompt + iOS standalone | Mobile Devs | ✅ |
+| 12.13 | Extract prompts a módulo separado | ML Engineer | ✅ |
+| 12.14 | Data retention policy documentada | DPO | ✅ |
 
-### 📋 ETAPA 12 — Estabilización y Observabilidad (Sprint actual)
+### 📋 ETAPA 13 — Crecimiento y Monetización (Sprint siguiente)
 
-| # | Tarea | Rol | Complejidad | Prioridad | Estado |
-|---|-------|-----|-------------|-----------|--------|
-| 12.1 | ~~Dividir useContactProcessing (407→3 hooks)~~ | Software Architect | Media | 🔴 Alta | ✅ Movido a 11.12 |
-| 12.2 | **Sentry para errores de producción** | SRE | Baja | 🔴 Alta | ⏳ |
-| 12.3 | **Rate limit en Supabase DB (cross-instance)** | Backend Dev | Media | 🟡 Alta | ✅ v10.8 |
-| 12.4 | **Playwright E2E en GitHub Actions** | QA Automation | Media | 🟡 Alta | ✅ v10.8 |
-| 12.5 | Cloudflare CDN (gratis) | Cloud Architect | Baja | 🟡 Alta | ⏳ |
-| 12.6 | Encriptar API keys con Web Crypto API | Cybersecurity | Media | 🟡 Alta | ✅ v10.8 |
-| 12.7 | 3er proveedor IA verificado (para pipeline completo) | Backend Dev | Baja | 🟡 Alta | ⏳ |
-| 12.8 | Gemini key: verificar activación | Backend Dev | Baja | 🟢 Media | ⏳ |
-| 12.9 | Deploy Edge Functions (log-error + clean-contacts) | DevOps | Baja | 🟢 Media | ⏳ (necesita Supabase token) |
-| 12.10 | React.lazy para rutas secundarias | Frontend | Baja | 🟢 Media | ✅ v10.9 |
-| 12.11 | TTL de 30 días para snapshots de historial | DBA | Baja | 🟢 Media | ✅ v10.9 |
-| 12.12 | Retry con backoff exponencial en llamadas IA | Backend Dev | Media | 🟢 Media | ✅ v10.8 |
-| 12.13 | Cookie consent banner (GDPR) | Legal, Frontend | Baja | 🟢 Media | ✅ v10.9 |
-| 12.14 | FAQ / Help Center | Customer Success | Baja | 🟢 Media | ✅ v10.9 |
-| 12.15 | PWA install prompt + iOS standalone | Mobile Devs | Baja | 🟢 Media | ✅ v10.8 |
-
-### 📋 ETAPA 13 — Crecimiento y Monetización (Sprint 2)
-
-| # | Tarea | Rol | Complejidad | Prioridad | Estado |
-|---|-------|-----|-------------|-----------|--------|
-| 13.1 | **Analytics: Plausible/Umami (GDPR-safe)** | BI Analyst | Baja | 🟡 Alta | ⏳ |
-| 13.2 | **Funnel tracking: visit → import → clean → export** | Growth Manager | Media | 🟡 Alta | ⏳ |
-| 13.3 | **Pricing page: Free vs Pro** | Product Manager | Media | 🟡 Alta | ⏳ |
-| 13.4 | Límites Free: 500 contacts/lote, 3 lotes/día | Backend Dev | Media | 🟡 Alta | ⏳ |
-| 13.5 | Blog SEO: 3 artículos clave | Content Manager | Baja | 🟡 Alta | ⏳ |
-| 13.6 | Product Hunt launch | Growth Manager | Baja | 🟡 Alta | ⏳ |
-| 13.7 | Cookie consent banner | Legal, Frontend | Baja | 🟢 Media | ⏳ (sub-agente, movido a 12.13) |
-| 13.8 | FAQ + Help Center | Customer Success | Baja | 🟢 Media | ⏳ (sub-agente, movido a 12.14) |
-| 13.9 | Feedback in-app (thumbs up/down) | UX Researcher | Baja | 🟢 Media | ⏳ |
+| # | Tarea | Rol | Prioridad |
+|---|-------|-----|-----------|
+| 13.1 | Analytics: Plausible/Umami (GDPR-safe) | BI Analyst | 🟡 Alta |
+| 13.2 | Funnel tracking: visit → import → clean → export | Growth Manager | 🟡 Alta |
+| 13.3 | Pricing page: Free vs Pro | Product Manager | 🟡 Alta |
+| 13.4 | Límites Free: 500 contacts/lote, 3 lotes/día | Backend Dev | 🟡 Alta |
+| 13.5 | Blog SEO: 3 artículos clave | Content Manager | 🟡 Alta |
+| 13.6 | Product Hunt launch | Growth Manager | 🟡 Alta |
 
 ### 📋 ETAPA 14 — Escala (Sprint 3+)
 
-| # | Tarea | Rol | Complejidad | Prioridad | Estado |
-|---|-------|-----|-------------|-----------|--------|
-| 14.1 | Circuit breaker formal para proveedores IA | Software Architect | Alta | 🟢 Media | ⏳ |
-| 14.2 | Prompts configurables (no hardcodeados) | ML Engineer | Media | 🟢 Media | ⏳ |
-| 14.3 | Twitter/X presencia + comunidad | Community Manager | Baja | 🟢 Media | ⏳ |
-| 14.4 | Integraciones CRM (HubSpot, Pipedrive) | Business Dev | Alta | 🔵 Futuro | ⏳ |
-| 14.5 | Embeddings para dedup semántica | ML Engineer | Alta | 🔵 Futuro | ⏳ |
-| 14.6 | Migración parcial a Supabase DB | Data Engineer | Alta | 🔵 Futuro | ⏳ |
-| 14.7 | App nativa iOS/Android | Mobile Devs | Alta | 🔵 Futuro | ⏳ |
+| # | Tarea | Rol | Prioridad |
+|---|-------|-----|-----------|
+| 14.1 | Circuit breaker formal para proveedores IA | Software Architect | 🟢 Media |
+| 14.2 | Prompts configurables externamente | ML Engineer | 🟢 Media |
+| 14.3 | Twitter/X presencia + comunidad | Community Manager | 🟢 Media |
+| 14.4 | Integraciones CRM (HubSpot, Pipedrive) | Business Dev | 🔵 Futuro |
+| 14.5 | Embeddings para dedup semántica | ML Engineer | 🔵 Futuro |
+| 14.6 | Migración parcial a Supabase DB | Data Engineer | 🔵 Futuro |
+| 14.7 | App nativa iOS/Android | Mobile Devs | 🔵 Futuro |
 
 ---
 
@@ -637,12 +459,14 @@ Steps:
   3. npm ci --legacy-peer-deps
   4. npm audit (warn only)
   5. npm test (174 tests)
-  6. npm run build
-  7. Smoke test: dist/index.html exists
-  8. SSH: backup current → clean assets/
-  9. SCP: dist/* → Hostinger
-  10. Post-deploy: curl HTTP 200 check
-  11. On failure: auto-rollback from backup
+  6. npx playwright install --with-deps chromium
+  7. npx playwright test (13 E2E tests)
+  8. npm run build
+  9. Smoke test: dist/index.html exists
+  10. SSH: backup current → clean assets/
+  11. SCP: dist/* → Hostinger
+  12. Post-deploy: curl HTTP 200 check
+  13. On failure: auto-rollback from backup
 ```
 
 ### Deploy Edge Functions (manual)
@@ -652,6 +476,19 @@ npx supabase login --token sbp_XXXXX
 npx supabase link --project-ref tzatuvxatsduuslxqdtm
 npx supabase functions deploy clean-contacts
 npx supabase functions deploy google-contacts-auth
+```
+
+### Migration SQL (manual — Supabase Dashboard)
+
+```sql
+CREATE TABLE IF NOT EXISTS rate_limits (
+  ip TEXT NOT NULL,
+  timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (ip, timestamp)
+);
+CREATE INDEX IF NOT EXISTS idx_rate_limits_timestamp ON rate_limits(timestamp);
+ALTER TABLE rate_limits ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Service role only" ON rate_limits FOR ALL USING (true);
 ```
 
 ---
@@ -667,20 +504,20 @@ npx supabase functions deploy google-contacts-auth
 | Input validation | ✅ | Max 10K contacts, field length limits |
 | XSS protection | ✅ | React escapa por defecto + `escapeHtml()` en HTML |
 | CORS | ✅ | Whitelist: util.mejoraok.com, mejoraok.com, localhost |
-| Rate limiting | ✅ | 30 req/min/IP en Edge Function |
-| API keys | ✅ | En localStorage del usuario, nunca en repo |
+| Rate limiting | ✅ | 30 req/min/IP en Supabase DB (cross-instance) |
+| API keys | ✅ | Cifradas con AES-GCM-256 en localStorage |
 | ErrorBoundary | ✅ | React Error Boundary global |
 | Privacy Policy | ✅ | /privacy — GDPR-compliant |
 | Terms of Service | ✅ | /terms |
+| Cookie consent | ✅ | Banner con aceptar/rechazar |
+| Data retention | ✅ | Política documentada en `Documents/DATA_RETENTION.md` |
 | .env protection | ✅ | En .gitignore |
 
 ### Pendientes
 
-- ⏳ Sentry para errores de producción
-- ⏳ Cloudflare WAF
-- ⏳ Cookie consent banner
+- ⏳ Sentry para errores de producción (necesita DSN)
+- ⏳ Cloudflare WAF (gratis, manual)
 - ⏳ npm audit blocking en CI
-- ✅ Encriptar API keys en localStorage (Web Crypto API)
 
 ---
 
@@ -688,25 +525,17 @@ npx supabase functions deploy google-contacts-auth
 
 | Versión | Fecha | Cambios principales |
 |---------|-------|-------------------|
-| v10.9 | 2026-04-29 | React.lazy rutas, FAQ page, cookie consent, memo DashboardPanel, TTL historial, E2E fixes |
-| v10.8 | 2026-04-29 | API keys encryption (AES-GCM Web Crypto), Playwright E2E en CI, rate limit DB |
-| v10.7 | 2026-04-29 | Refactor: useContactProcessing dividido en 3 hooks (useAIPipeline, useDedup, orchestrator) |
-| v10.6 | 2026-04-29 | Fix crítico: declaración duplicada en Edge Function clean-contacts, consolidación documentación |
-| v10.5 | 2026-04-28 | Keyboard shortcuts, SimpleMode fix (ProcessingPanel integrado) |
-| v10.4 | 2026-04-28 | Cerebras modelo actualizado (llama3.1-8b), proveedores verificados |
+| v11.0 | 2026-04-29 | Etapa 12 completa: hooks divididos, keys cifradas, E2E CI, rate limit DB, retry backoff, cookie consent, FAQ, PWA install, prompts extraídos, data retention |
+| v10.6 | 2026-04-29 | Fix crítico: declaración duplicada en Edge Function, consolidación documentación |
+| v10.5 | 2026-04-28 | Keyboard shortcuts, SimpleMode fix |
+| v10.4 | 2026-04-28 | Cerebras modelo actualizado, proveedores verificados |
 | v10.3 | 2026-04-28 | Monitoreo: error reporter v2, health endpoint, uptime cron |
 | v10.2 | 2026-04-28 | Fix 3 bugs: encoding UTF-8 CSV, regex column mapper, historial snapshot |
-| v10.1 | 2026-04-28 | Documentación consolidada en MASTERPLAN.md único |
 | v10.0 | 2026-04-24 | Landing page, SEO, i18n, fine-tuning JSONL |
 | v9.0 | 2026-04-24 | E2E Playwright, coverage, a11y, perf budget |
 | v8.0 | 2026-04-24 | PWA, Web Worker, CDN guide, rollback deploy |
 | v7.0 | 2026-04-24 | Onboarding wizard, modo simple, preview, skeletons |
 | v6.0 | 2026-04-24 | CSP headers, JWT, input validation, Privacy/Terms |
-| v5.0 | 2026-04-24 | Health Check, Historial/Undo |
-| v4.5 | 2026-04-24 | Limpieza proveedor "lovable" obsoleto |
-| v4.4 | 2026-04-24 | Fix anon key + modelo OpenRouter |
-| v4.3 | 2026-04-24 | Migración Supabase propio |
-| v4.0 | 2026-04-23 | Hardening: Worker, lazy xlsx, a11y, rate limit |
 | v3.0 | 2026-04-22 | Core completo: pipeline IA, dedup, exportación |
 
 ---
@@ -718,18 +547,19 @@ npx supabase functions deploy google-contacts-auth
 | `src/hooks/useContactProcessing.ts` | Orquestador del pipeline | ~200 |
 | `src/hooks/useAIPipeline.ts` | Lógica de limpieza IA + validación | ~200 |
 | `src/hooks/useDedup.ts` | Deduplicación con Web Workers | ~50 |
-| `src/lib/providers.ts` | Config de 12 proveedores IA | 29 |
-| `src/lib/db.ts` | IndexedDB v3 | 228 |
+| `src/hooks/usePipelineConfig.ts` | Config pipeline + auto-suggest | ~80 |
+| `src/hooks/usePWAInstall.ts` | PWA install prompt | ~40 |
+| `src/lib/api-keys.ts` | Gestión API keys (cifradas AES-GCM) | ~180 |
+| `src/lib/db.ts` | IndexedDB v3 + TTL 30 días | ~260 |
 | `src/lib/dedup.ts` | Deduplicación O(n) + Jaro-Winkler | 227 |
 | `src/lib/rule-cleaner.ts` | Limpieza determinística | 166 |
 | `src/lib/ai-validator.ts` | Validación IA con cache | 231 |
 | `src/lib/field-validator.ts` | Validación semántica de campos | 280 |
-| `src/lib/column-mapper.ts` | Auto-detección de columnas | 45 |
 | `src/lib/export-utils.ts` | Exportación 6 formatos | 250 |
-| `src/components/ColumnMapper.tsx` | UI mapeo de columnas | 171 |
-| `src/pages/Index.tsx` | Página principal (6 tabs) | 324 |
-| `src/workers/pipeline.worker.ts` | Web Worker para batch+dedup | 200 |
-| `supabase/functions/clean-contacts/index.ts` | Edge Function: limpieza IA | 550 |
+| `src/components/CookieConsent.tsx` | Banner consentimiento cookies | ~40 |
+| `src/pages/FAQ.tsx` | FAQ / Help Center | ~140 |
+| `supabase/functions/clean-contacts/index.ts` | Edge Function: limpieza IA | ~550 |
+| `supabase/functions/clean-contacts/prompts.ts` | Prompts IA (extraídos) | ~80 |
 | `Documents/MASTERPLAN.md` | Este archivo (doc principal) | — |
 
 ---
@@ -741,7 +571,8 @@ npx supabase functions deploy google-contacts-auth
 cd MejoraContactos && npm install --legacy-peer-deps && npm run dev
 
 # Tests
-npx vitest run                    # 174 tests
+npx vitest run                    # 174 tests unitarios
+npx playwright test               # 13 E2E tests
 
 # Build
 npx vite build                    # producción
@@ -769,4 +600,4 @@ npx supabase functions deploy google-contacts-auth
 ---
 
 *Documento maestro — consolidación de toda la documentación del proyecto. Actualizar al decir "documentar".*
-*Última actualización: 2026-04-29 06:15 GMT+8 — 174 tests · v10.6 · 12 proveedores IA · Pipeline híbrido*
+*Última actualización: 2026-04-29 06:35 GMT+8 — 174 tests · v11.0 · 12 proveedores IA · Pipeline híbrido · GDPR compliant*
