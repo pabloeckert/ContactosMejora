@@ -175,14 +175,48 @@ export async function saveHistorySnapshot(
 
   // Prune old entries
   const all = await tx.store.index("timestamp").getAll();
+  const toDelete: HistoryEntry[] = [];
   if (all.length > MAX_HISTORY) {
-    const toDelete = all.slice(0, all.length - MAX_HISTORY);
-    for (const old of toDelete) {
+    const excess = all.slice(0, all.length - MAX_HISTORY);
+    for (const old of excess) {
+      toDelete.push(old);
       await tx.store.delete(old.id);
     }
   }
+
+  // TTL cleanup: remove entries older than 30 days
+  const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+  const cutoff = new Date(Date.now() - THIRTY_DAYS_MS);
+  const oldEntries = all.filter(e => new Date(e.timestamp) < cutoff);
+  for (const old of oldEntries) {
+    if (!toDelete.find(d => d.id === old.id)) { // Don't double-delete
+      await tx.store.delete(old.id);
+    }
+  }
+
   await tx.done;
   return entry.id;
+}
+
+/**
+ * Manually clean up history entries older than 30 days.
+ * Returns the number of deleted entries.
+ */
+export async function cleanupOldHistory(): Promise<number> {
+  const db = await getDB();
+  const all = await db.getAll("history");
+  const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+  const cutoff = new Date(Date.now() - THIRTY_DAYS_MS);
+  let deleted = 0;
+  const tx = db.transaction("history", "readwrite");
+  for (const entry of all) {
+    if (new Date(entry.timestamp) < cutoff) {
+      await tx.store.delete(entry.id);
+      deleted++;
+    }
+  }
+  await tx.done;
+  return deleted;
 }
 
 /**
