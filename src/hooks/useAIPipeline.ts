@@ -3,7 +3,7 @@
  * Extracted from useContactProcessing for separation of concerns.
  */
 
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { validateBatchWithAI, clearValidationCache } from "@/lib/ai-validator";
 import { validateContactFields } from "@/lib/field-validator";
 import { supabase } from "@/integrations/supabase/client";
@@ -198,7 +198,9 @@ export function useAIPipeline(options: UseAIPipelineOptions) {
     return contacts;
   }, []);
 
-  const activeKeys = useMemo(() => getActiveKeysMulti(), []);
+  const initialKeys = (() => { try { const r = getActiveKeysMulti(); return r instanceof Promise ? {} : r; } catch { return {}; } })();
+  const [activeKeys, setActiveKeys] = useState<Record<string, string[]>>(initialKeys);
+  useEffect(() => { Promise.resolve(getActiveKeysMulti()).then(setActiveKeys).catch(() => {}); }, []);
   const activeProviders = useMemo(() => Object.keys(activeKeys).filter(k => activeKeys[k].length > 0), [activeKeys]);
 
   return {
