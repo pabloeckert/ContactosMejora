@@ -1,6 +1,7 @@
 import { ArrowLeft, FileText, AlertTriangle, Scale, ShieldCheck, Zap, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CookieConsent } from "@/components/CookieConsent";
 
 const Terms = () => (
   <div className="container max-w-3xl mx-auto py-8 px-4">
@@ -153,6 +154,7 @@ const Terms = () => (
         </CardContent>
       </Card>
     </div>
+    <CookieConsent />
   </div>
 );
 

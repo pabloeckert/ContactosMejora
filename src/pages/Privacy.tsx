@@ -1,6 +1,7 @@
 import { ArrowLeft, Shield, Lock, Eye, Database, Globe, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CookieConsent } from "@/components/CookieConsent";
 
 const Privacy = () => (
   <div className="container max-w-3xl mx-auto py-8 px-4">
@@ -145,6 +146,7 @@ const Privacy = () => (
         </CardContent>
       </Card>
     </div>
+    <CookieConsent />
   </div>
 );
 
