@@ -34,6 +34,9 @@ jobs:
       - run: npm test
       - run: npm run build
 
+      - name: Performance budget check
+        run: bash scripts/perf-check.sh
+
       # Smoke test the build locally before deploying
       - name: Build smoke test
         run: |

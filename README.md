@@ -1,5 +1,10 @@
 # MejoraContactos
 
+[![Build & Deploy](https://github.com/pabloeckert/MejoraContactos/actions/workflows/deploy.yml/badge.svg)](https://github.com/pabloeckert/MejoraContactos/actions/workflows/deploy.yml)
+[![Tests](https://img.shields.io/badge/tests-180%20passing-brightgreen)](https://github.com/pabloeckert/MejoraContactos/actions)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Live](https://img.shields.io/badge/live-demo-brightgreen)](https://util.mejoraok.com/mejoracontactos/)
+
 Limpieza, deduplicación y unificación de contactos con IA.
 
 ## Stack
