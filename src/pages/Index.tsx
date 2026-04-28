@@ -23,6 +23,8 @@ import { HistoryPanel } from "@/components/HistoryPanel";
 import { Button } from "@/components/ui/button";
 import { CookieConsent } from "@/components/CookieConsent";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
+import { UsageBanner } from "@/components/UsageBanner";
+import { PricingSection } from "@/components/PricingSection";
 
 const ONBOARDING_KEY = "__mc_onboarded__";
 const MODE_KEY = "__mc_simple_mode__";
@@ -296,6 +298,8 @@ const Index = () => {
               </TabsTrigger>
             </TabsList>
 
+            <UsageBanner />
+
             <TabsContent value="import">
               <div className="space-y-4">
                 <GoogleContactsPanel onContactsImported={(file) => handleFilesAdded([file])} />
@@ -372,6 +376,11 @@ const Index = () => {
           </Tabs>
         )}
       </main>
+
+      {/* Pricing section */}
+      <section className="container px-4 py-10">
+        <PricingSection />
+      </section>
 
       {/* Cookie Consent Banner */}
       <CookieConsent />

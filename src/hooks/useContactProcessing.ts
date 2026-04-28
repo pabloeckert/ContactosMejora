@@ -19,6 +19,7 @@ import type {
   ProcessingLog,
 } from "@/types/contact";
 import { toast } from "sonner";
+import { checkContactLimit, checkBatchLimit, recordBatch } from "@/lib/usage-limits";
 
 export type PipelineStage = "idle" | "active" | "done" | "error";
 
@@ -101,6 +102,23 @@ export function useContactProcessing(files: ParsedFile[]) {
     pauseRef.current = false;
     const totalRows = allRowsRef.current.length;
     const startTime = Date.now();
+
+    // ── Check usage limits ──
+    const contactLimit = checkContactLimit(totalRows);
+    if (!contactLimit.allowed) {
+      toast.error(contactLimit.reason);
+      addLog("error", contactLimit.reason!);
+      setStats(prev => ({ ...prev, status: "idle" }));
+      return;
+    }
+    const batchLimit = checkBatchLimit();
+    if (!batchLimit.allowed) {
+      toast.error(batchLimit.reason);
+      addLog("error", batchLimit.reason!);
+      setStats(prev => ({ ...prev, status: "idle" }));
+      return;
+    }
+
     setPipelineState({ ...INITIAL_PIPELINE, mapping: "active" });
     setStats({ totalRows, processedRows: 0, uniqueContacts: 0, duplicatesFound: 0, aiCleanedCount: 0, rowsPerSecond: 0, startTime, status: "processing" });
     addLog("info", `Iniciando procesamiento de ${totalRows} filas...`);
@@ -200,6 +218,7 @@ export function useContactProcessing(files: ParsedFile[]) {
     const aiCount = contacts.filter((c) => c.aiCleaned).length;
     setStats({ totalRows, processedRows: totalRows, uniqueContacts: unique.length, duplicatesFound: dupes.length, aiCleanedCount: aiCount, rowsPerSecond: Math.round(totalRows / ((Date.now() - startTime) / 1000)), startTime, status: "done" });
     addLog("success", `✓ Completado: ${unique.length} unicos, ${dupes.length} duplicados, ${aiCount} limpiados por IA`);
+    recordBatch();
     toast.success(`Procesamiento completado: ${unique.length} contactos unicos`);
     onComplete(contacts);
   }, [files, mappings, addLog, defaultCountry, cleanWithAI, validateWithAI, deduplicate]);

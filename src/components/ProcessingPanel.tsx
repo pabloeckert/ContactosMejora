@@ -1,4 +1,4 @@
-import { Play, Pause, Square, Loader2, Sparkles, Zap, Globe, Bot, BrainCircuit, Trash2, RotateCcw, Shield, Shuffle } from "lucide-react";
+import { Play, Pause, Square, Loader2, Sparkles, Zap, Globe, Bot, BrainCircuit, Trash2, RotateCcw, Shield, Shuffle, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -9,7 +9,9 @@ import { ColumnMapper } from "./ColumnMapper";
 import { PipelineVisualizer } from "./PipelineVisualizer";
 import { useContactProcessing, suggestOptimalConfig } from "@/hooks/useContactProcessing";
 import { PROVIDERS } from "@/lib/providers";
+import { canProcess, recordBatch } from "@/lib/usage";
 import type { ParsedFile, UnifiedContact } from "@/types/contact";
+import { toast } from "sonner";
 
 interface ProcessingPanelProps {
   files: ParsedFile[];
@@ -69,10 +71,41 @@ const COUNTRIES = [
 
 export function ProcessingPanel({ files, onProcessingComplete, onResetAll }: ProcessingPanelProps) {
   const p = useContactProcessing(files);
+  const totalRows = p.allRowsRef.current.length;
+
+  const handleStart = () => {
+    const check = canProcess(totalRows);
+    if (!check.allowed) {
+      toast.error(check.reason, { description: check.suggestion, duration: 6000 });
+      return;
+    }
+    p.startProcessing((contacts) => {
+      // Record usage after successful processing
+      recordBatch(totalRows);
+      onProcessingComplete(contacts);
+    });
+  };
 
   return (
     <div className="space-y-4">
       <ColumnMapper mappings={p.mappings} sampleData={p.allRowsRef.current} onMappingChange={p.handleMappingChange} />
+
+      {/* Free tier limit warning */}
+      {(() => {
+        const check = canProcess(totalRows);
+        if (!check.allowed) {
+          return (
+            <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-3 flex items-start gap-2 text-sm">
+              <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium text-destructive">{check.reason}</p>
+                <p className="text-xs text-muted-foreground mt-1">{check.suggestion}</p>
+              </div>
+            </div>
+          );
+        }
+        return null;
+      })()}
 
       <Card>
         <CardHeader className="pb-3">
@@ -190,7 +223,7 @@ export function ProcessingPanel({ files, onProcessingComplete, onResetAll }: Pro
               )}
             </div>
             <div className="flex gap-2">
-              <Button size="sm" onClick={() => p.startProcessing(onProcessingComplete)} disabled={p.isActive || files.length === 0}>
+              <Button size="sm" onClick={handleStart} disabled={p.isActive || files.length === 0}>
                 {p.isActive ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
                 {p.isActive ? "Procesando..." : p.stats.status === "done" ? "Reprocesar" : "Iniciar"}
               </Button>

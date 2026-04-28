@@ -220,4 +220,23 @@ test.describe("MejoraContactos — E2E", () => {
     await page.keyboard.press("1");
     await expect(page.getByRole("tab", { name: /importar/i })).toHaveAttribute("data-state", "active");
   });
+
+  test("landing page loads and shows features", async ({ page }) => {
+    await page.goto("/landing");
+    await expect(page.getByRole("heading", { name: /limpieza con ia/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /deduplicación inteligente/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /privacy-first/i })).toBeVisible();
+  });
+
+  test("FAQ page loads and shows questions", async ({ page }) => {
+    await page.goto("/faq");
+    await expect(page.getByText(/¿qué es mejoracontactos/i)).toBeVisible();
+    await expect(page.getByText(/¿mis datos se suben/i)).toBeVisible();
+  });
+
+  test("404 page shows for unknown routes", async ({ page }) => {
+    await page.goto("/ruta-que-no-existe");
+    await expect(page.getByText("404")).toBeVisible();
+    await expect(page.getByText(/page not found/i)).toBeVisible();
+  });
 });
