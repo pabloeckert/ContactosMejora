@@ -20,13 +20,13 @@ Sos el asistente de desarrollo del proyecto **MejoraContactos** — una app web 
 - **Tests:** 174 tests, `npx vitest run`
 - **Bundle:** ~389KB index (lazy xlsx, chunks separados)
 
-## Estado actual (v10.3 — 2026-04-28)
+## Estado actual (v10.5 — 2026-04-29)
 
 - ✅ Core completo (pipeline IA, dedup, exportación 6 formatos, Google Contacts)
 - ✅ Deploy funcional en producción
-- ✅ 12 proveedores IA configurados (Groq y OpenRouter verificados)
+- ✅ 12 proveedores IA configurados (Groq y Cerebras verificados)
 - ✅ Health Check de proveedores
-- ✅ Historial/Undo con snapshots (también con procesamiento por reglas)
+- ✅ Historial/Undo con snapshots
 - ✅ 174 tests pasando
 - ✅ PWA (manifest + service worker)
 - ✅ Landing page + SEO (OG tags, Schema.org)
@@ -39,18 +39,20 @@ Sos el asistente de desarrollo del proyecto **MejoraContactos** — una app web 
 - ✅ Uptime monitoring (cron cada 5 min)
 - ✅ CSV encoding fix (UTF-8 + BOM)
 - ✅ Regex column mapper robusto
+- ✅ Keyboard shortcuts (1-6, D, S, ?)
+- ✅ SimpleMode fix (ProcessingPanel integrado)
 
-## Pendientes principales
+## Pendientes principales (Etapa 12)
 
-| Etapa | Tarea | Estado |
-|-------|-------|--------|
-| 11.3 | Test proveedores IA con keys reales | ⏳ |
-| 11.4 | Sentry para errores de producción | ⏳ |
-| 11.7 | Fix bug: "Teléfono" en dropdown mapeo | ⏳ |
-| 12.1 | Analytics: Plausible/Umami | ⏳ |
-| 12.3 | Pricing page: Free vs Pro | ⏳ |
-| 13.1 | Blog SEO: 3 artículos clave | ⏳ |
-| 13.2 | Product Hunt launch | ⏳ |
+| # | Tarea | Rol | Prioridad |
+|---|-------|-----|-----------|
+| 1 | Dividir useContactProcessing (407→3 hooks) | Software Architect | 🔴 Alta |
+| 2 | Sentry para errores de producción | SRE | 🔴 Alta |
+| 3 | Rate limit en Supabase DB | Backend Dev | 🟡 Alta |
+| 4 | Playwright E2E en GitHub Actions | QA Automation | 🟡 Alta |
+| 5 | Cloudflare CDN (gratis) | Cloud Architect | 🟡 Alta |
+| 6 | Encriptar API keys (Web Crypto API) | Cybersecurity | 🟡 Alta |
+| 7 | 3er proveedor IA verificado | Backend Dev | 🟡 Alta |
 
 ## Comandos útiles
 
@@ -72,11 +74,10 @@ npx supabase functions deploy clean-contacts
 ## Lo que NO hacer
 
 - ❌ No instalar dependencias nuevas sin preguntar
-- ❌ No modificar `supabase/config.toml` ni credenciales
-- ❌ No hacer deploy de Edge Functions sin confirmar
-- ❌ No romper los 174 tests existentes
-- ❌ No usar `rm -r` — usar `trash` o preguntar
+- ❌ No commitear .env ni tokens
+- ❌ No hacer deploy manual de frontend (es automático con push)
+- ❌ No tocar Edge Functions sin preguntar (deploy manual)
 
 ---
 
-*Siempre actualizá este archivo cuando haya cambios significativos. Documentación completa en `Documents/MASTERPLAN.md`.*
+*Prompt de continuidad — actualizar con cada sesión.*
