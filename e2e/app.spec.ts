@@ -108,8 +108,9 @@ test.describe("MejoraContactos — E2E", () => {
 
   test("footer has privacy and terms links", async ({ page }) => {
     await page.getByRole("button", { name: /saltar/i }).click();
-    await expect(page.getByRole("link", { name: "Privacidad" })).toBeVisible();
-    await expect(page.getByRole("link", { name: /términos/i })).toBeVisible();
+    const footer = page.locator("footer");
+    await expect(footer.getByRole("link", { name: /privacidad/i })).toBeVisible();
+    await expect(footer.getByRole("link", { name: /términos/i })).toBeVisible();
   });
 
   test("privacy page loads", async ({ page }) => {
