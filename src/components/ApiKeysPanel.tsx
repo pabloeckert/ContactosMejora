@@ -16,7 +16,6 @@ import type { ProviderInfo } from "@/lib/providers";
 import {
   loadProviderKeys,
   saveProviderKeys,
-  getActiveKeysMulti,
   getActiveKeys,
 } from "@/lib/api-keys";
 import type { KeyEntry, ProviderKeys } from "@/lib/api-keys";

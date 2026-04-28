@@ -51,7 +51,7 @@ export async function cleanContactsBatch(
       const body: Record<string, unknown> = {
         contacts: payload,
         provider: isPipeline ? "pipeline" : singleProvider,
-        customKeys: getActiveKeysMulti(),
+        customKeys: await getActiveKeysMulti(),
       };
 
       if (isPipeline) {

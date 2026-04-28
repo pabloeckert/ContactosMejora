@@ -36,7 +36,7 @@ export function HealthCheckPanel() {
   const [progress, setProgress] = useState(0);
 
   const runHealthCheck = useCallback(async () => {
-    const activeKeys = getActiveKeysMulti();
+    const activeKeys = await getActiveKeysMulti();
     const providersToTest: ProviderHealth[] = PROVIDERS.map(p => ({
       id: p.id,
       name: p.name,

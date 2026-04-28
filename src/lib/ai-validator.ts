@@ -95,7 +95,7 @@ export async function validateContactWithAI(
   }
 
   try {
-    const keys = getActiveKeysMulti();
+    const keys = await getActiveKeysMulti();
 
     // Enviamos el contacto real a la Edge Function para que lo limpie.
     // La IA corregirá los campos inválidos, y comparamos antes/después.
@@ -196,7 +196,8 @@ export async function validateBatchWithAI(
 
   // Enviar a IA solo los que necesitan revisión, en lotes de 10
   const BATCH_SIZE = 10;
-  const provider = Object.keys(getActiveKeysMulti()).find(k => getActiveKeysMulti()[k].length > 0) || 'groq';
+  const allKeys = await getActiveKeysMulti();
+  const provider = Object.keys(allKeys).find(k => allKeys[k].length > 0) || 'groq';
 
   let processed = contacts.length - needsAI.length;
 

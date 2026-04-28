@@ -5,7 +5,7 @@ import type { ParsedFile } from "@/types/contact";
 
 // Mock dependencies
 vi.mock("@/lib/api-keys", () => ({
-  getActiveKeysMulti: () => ({ groq: ["key1"], openrouter: ["key2"] }),
+  getActiveKeysMulti: async () => ({ groq: ["key1"], openrouter: ["key2"] }),
 }));
 
 vi.mock("@/lib/db", () => ({
