@@ -1,0 +1,51 @@
+name: Build & Deploy (Staging)
+
+on:
+  push:
+    branches: [staging]
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci --legacy-peer-deps
+      - run: npm test
+      - run: npm run build
+
+      - name: Build smoke test
+        run: |
+          test -f dist/index.html || (echo "ERROR: dist/index.html not found" && exit 1)
+          echo "✅ Build OK"
+
+      - name: Upload dist via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASS }}
+          port: ${{ secrets.SSH_PORT }}
+          source: "dist/*"
+          target: /home/u846064658/domains/mejoraok.com/public_html/util/mejoracontactos_staging
+          strip_components: 1
+
+      - name: Post-deploy smoke test
+        run: |
+          sleep 10
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "https://util.mejoraok.com/mejoracontactos_staging/" 2>/dev/null || echo "000")
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ Staging deploy OK — HTTP $HTTP_CODE"
+          else
+            echo "⚠️ Staging may have issues — HTTP $HTTP_CODE"
+          fi
