@@ -21,6 +21,7 @@ import { ApiKeysPanel } from "@/components/ApiKeysPanel";
 import { HealthCheckPanel } from "@/components/HealthCheckPanel";
 import { HistoryPanel } from "@/components/HistoryPanel";
 import { Button } from "@/components/ui/button";
+import { CookieConsent } from "@/components/CookieConsent";
 
 const ONBOARDING_KEY = "__mc_onboarded__";
 const MODE_KEY = "__mc_simple_mode__";
@@ -358,12 +359,17 @@ const Index = () => {
         )}
       </main>
 
+      {/* Cookie Consent Banner */}
+      <CookieConsent />
+
       {/* Footer */}
       <footer className="py-3 px-4 text-center text-xs text-muted-foreground/60 border-t border-border/30">
         <span>© 2026 MejoraContactos · </span>
         <a href={`${import.meta.env.BASE_URL}privacy`} className="hover:text-foreground underline underline-offset-2">Privacidad</a>
         <span> · </span>
         <a href={`${import.meta.env.BASE_URL}terms`} className="hover:text-foreground underline underline-offset-2">Términos</a>
+        <span> · </span>
+        <a href={`${import.meta.env.BASE_URL}faq`} className="hover:text-foreground underline underline-offset-2">FAQ</a>
       </footer>
     </div>
   );
