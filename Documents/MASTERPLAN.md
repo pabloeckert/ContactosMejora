@@ -2,8 +2,8 @@
 
 > **⚡ INSTRUCCIÓN:** Cuando el usuario diga **"documentar"**, actualizar este archivo con el estado actual del proyecto, trabajos realizados, pendientes y cualquier cambio relevante. Todos los documentos viven en `Documents/`.
 
-**Última actualización:** 2026-04-29 06:28 GMT+8
-**Versión actual:** v10.8
+**Última actualización:** 2026-04-29 06:32 GMT+8
+**Versión actual:** v10.9
 **Repo:** [pabloeckert/MejoraContactos](https://github.com/pabloeckert/MejoraContactos)
 **Live:** https://util.mejoraok.com/mejoracontactos/
 **Tests:** 174 pasando ✅ | Build: OK ✅
@@ -326,7 +326,7 @@ Parseo → Mapeo → Reglas (80%) → IA Limpieza → IA Verificación → IA Co
 - **Debilidad:** API keys en localStorage sin encriptar
 - **Debilidad:** Sin Cloudflare WAF
 - **Plan:**
-  - [ ] Encriptar API keys con Web Crypto API
+  - [x] Encriptar API keys con Web Crypto API
   - [ ] Cloudflare WAF (gratis)
   - [ ] Cookie consent banner si se usa analytics
 
@@ -570,12 +570,12 @@ Parseo → Mapeo → Reglas (80%) → IA Limpieza → IA Verificación → IA Co
 | 12.7 | 3er proveedor IA verificado (para pipeline completo) | Backend Dev | Baja | 🟡 Alta | ⏳ |
 | 12.8 | Gemini key: verificar activación | Backend Dev | Baja | 🟢 Media | ⏳ |
 | 12.9 | Deploy Edge Functions (log-error + clean-contacts) | DevOps | Baja | 🟢 Media | ⏳ (necesita Supabase token) |
-| 12.10 | React.lazy para rutas secundarias | Frontend | Baja | 🟢 Media | ⏳ (sub-agente) |
-| 12.11 | TTL de 30 días para snapshots de historial | DBA | Baja | 🟢 Media | ⏳ (sub-agente) |
-| 12.12 | Retry con backoff exponencial en llamadas IA | Backend Dev | Media | 🟢 Media | ⏳ (sub-agente) |
-| 12.13 | Cookie consent banner (GDPR) | Legal, Frontend | Baja | 🟢 Media | ⏳ (sub-agente) |
-| 12.14 | FAQ / Help Center | Customer Success | Baja | 🟢 Media | ⏳ (sub-agente) |
-| 12.15 | PWA install prompt + iOS standalone | Mobile Devs | Baja | 🟢 Media | ⏳ (sub-agente) |
+| 12.10 | React.lazy para rutas secundarias | Frontend | Baja | 🟢 Media | ✅ v10.9 |
+| 12.11 | TTL de 30 días para snapshots de historial | DBA | Baja | 🟢 Media | ✅ v10.9 |
+| 12.12 | Retry con backoff exponencial en llamadas IA | Backend Dev | Media | 🟢 Media | ✅ v10.8 |
+| 12.13 | Cookie consent banner (GDPR) | Legal, Frontend | Baja | 🟢 Media | ✅ v10.9 |
+| 12.14 | FAQ / Help Center | Customer Success | Baja | 🟢 Media | ✅ v10.9 |
+| 12.15 | PWA install prompt + iOS standalone | Mobile Devs | Baja | 🟢 Media | ✅ v10.8 |
 
 ### 📋 ETAPA 13 — Crecimiento y Monetización (Sprint 2)
 
@@ -680,7 +680,7 @@ npx supabase functions deploy google-contacts-auth
 - ⏳ Cloudflare WAF
 - ⏳ Cookie consent banner
 - ⏳ npm audit blocking en CI
-- ⏳ Encriptar API keys en localStorage (Web Crypto API)
+- ✅ Encriptar API keys en localStorage (Web Crypto API)
 
 ---
 
@@ -688,6 +688,7 @@ npx supabase functions deploy google-contacts-auth
 
 | Versión | Fecha | Cambios principales |
 |---------|-------|-------------------|
+| v10.9 | 2026-04-29 | React.lazy rutas, FAQ page, cookie consent, memo DashboardPanel, TTL historial, E2E fixes |
 | v10.8 | 2026-04-29 | API keys encryption (AES-GCM Web Crypto), Playwright E2E en CI, rate limit DB |
 | v10.7 | 2026-04-29 | Refactor: useContactProcessing dividido en 3 hooks (useAIPipeline, useDedup, orchestrator) |
 | v10.6 | 2026-04-29 | Fix crítico: declaración duplicada en Edge Function clean-contacts, consolidación documentación |
