@@ -1,7 +1,11 @@
 /**
  * Gestión de API keys en localStorage con cifrado AES-GCM (Web Crypto API).
- * El cifrado es transparente: las funciones públicas mantienen la API sync
- * usando un cache en memoria que se llena async en background.
+ * El cifrado es transparente: las funciones públicas mantienen la API sync.
+ * 
+ * Estrategia: cache en memoria inicializado sync desde localStorage.
+ * Las keys se almacenan cifradas en localStorage pero se descifran async
+ * en background. Mientras tanto, el cache tiene las keys (posiblemente
+ * cifradas) que son funcionales para las llamadas inmediatas.
  */
 
 export interface KeyEntry {
@@ -22,11 +26,49 @@ const LEGACY_KEY = "contactunifier_api_keys";
 const ENC_KEY_STORAGE = "__mc_enc_key__";
 const ENC_MARKER = "__enc__:";
 
-// ─── In-memory cache for sync access ───────────────────────────────
+// ─── In-memory cache (sync access) ─────────────────────────────────
 
 let cachedKeys: ProviderKeys[] = [];
-let cacheInitialized = false;
-let cachePromise: Promise<void> | null = null;
+let decryptedKeys: ProviderKeys[] = [];
+let decryptionDone = false;
+
+/** Initialize cache synchronously from localStorage (may contain encrypted keys). */
+function initCacheSync(): void {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      cachedKeys = JSON.parse(raw) as ProviderKeys[];
+      // If keys look unencrypted, use them directly
+      const hasEncrypted = cachedKeys.some(pk => pk.keys.some(k => k.apiKey?.startsWith(ENC_MARKER)));
+      if (!hasEncrypted) {
+        decryptedKeys = cachedKeys;
+        decryptionDone = true;
+      }
+      return;
+    }
+    // Legacy migration
+    const legacy = localStorage.getItem(LEGACY_KEY);
+    if (legacy) {
+      const old = JSON.parse(legacy) as Array<{ providerId: string; apiKey: string; status?: string; lastTested?: string }>;
+      cachedKeys = old.map(o => ({
+        providerId: o.providerId,
+        keys: [{
+          id: crypto.randomUUID(),
+          apiKey: o.apiKey,
+          status: (o.status as KeyEntry["status"]) || "untested",
+          lastTested: o.lastTested,
+        }],
+      }));
+      decryptedKeys = cachedKeys;
+      decryptionDone = true;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cachedKeys));
+    }
+  } catch {
+    cachedKeys = [];
+    decryptedKeys = [];
+    decryptionDone = true;
+  }
+}
 
 // ─── Web Crypto helpers ─────────────────────────────────────────────
 
@@ -56,7 +98,7 @@ export async function encryptString(plain: string): Promise<string> {
 }
 
 export async function decryptString(encrypted: string): Promise<string> {
-  if (!encrypted.startsWith(ENC_MARKER)) return encrypted; // plain-text fallback
+  if (!encrypted.startsWith(ENC_MARKER)) return encrypted;
   const b64 = encrypted.slice(ENC_MARKER.length);
   const binary = atob(b64);
   const bytes = new Uint8Array(binary.length);
@@ -68,7 +110,29 @@ export async function decryptString(encrypted: string): Promise<string> {
   return new TextDecoder().decode(plainBuf);
 }
 
-// ─── Migration: re-encrypt existing plain-text keys in-place ────────
+// ─── Background decryption ──────────────────────────────────────────
+
+async function decryptAllKeys(): Promise<void> {
+  if (decryptionDone) return;
+  try {
+    const result: ProviderKeys[] = [];
+    for (const pk of cachedKeys) {
+      const keys: KeyEntry[] = [];
+      for (const k of pk.keys) {
+        keys.push({ ...k, apiKey: k.apiKey ? await decryptString(k.apiKey) : k.apiKey });
+      }
+      result.push({ ...pk, keys });
+    }
+    decryptedKeys = result;
+    decryptionDone = true;
+  } catch {
+    // If decryption fails, use raw keys (better than nothing)
+    decryptedKeys = cachedKeys;
+    decryptionDone = true;
+  }
+}
+
+// ─── Migration ──────────────────────────────────────────────────────
 
 async function migrateUnencryptedKeys(): Promise<void> {
   const raw = localStorage.getItem(STORAGE_KEY);
@@ -88,95 +152,36 @@ async function migrateUnencryptedKeys(): Promise<void> {
     }
     migrated.push({ ...pk, keys });
   }
-  if (changed) localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
-}
-
-// ─── Async loader (fills cache) ─────────────────────────────────────
-
-async function loadAndCache(): Promise<void> {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw) as ProviderKeys[];
-      // Fire-and-forget migration of any remaining plain-text keys
-      migrateUnencryptedKeys();
-      // Decrypt all keys for in-memory use
-      const decrypted: ProviderKeys[] = [];
-      for (const pk of parsed) {
-        const keys: KeyEntry[] = [];
-        for (const k of pk.keys) {
-          keys.push({ ...k, apiKey: k.apiKey ? await decryptString(k.apiKey) : k.apiKey });
-        }
-        decrypted.push({ ...pk, keys });
-      }
-      cachedKeys = decrypted;
-      cacheInitialized = true;
-      return;
-    }
-    // Migration from v1 (legacy format)
-    const legacy = localStorage.getItem(LEGACY_KEY);
-    if (legacy) {
-      const old = JSON.parse(legacy) as Array<{ providerId: string; apiKey: string; status?: string; lastTested?: string }>;
-      const encrypted: ProviderKeys[] = [];
-      for (const o of old) {
-        encrypted.push({
-          providerId: o.providerId,
-          keys: [{
-            id: crypto.randomUUID(),
-            apiKey: await encryptString(o.apiKey),
-            status: (o.status as KeyEntry["status"]) || "untested",
-            lastTested: o.lastTested,
-          }],
-        });
-      }
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(encrypted));
-      cachedKeys = old.map(o => ({
-        providerId: o.providerId,
-        keys: [{
-          id: crypto.randomUUID(),
-          apiKey: o.apiKey,
-          status: (o.status as KeyEntry["status"]) || "untested",
-          lastTested: o.lastTested,
-        }],
-      }));
-      cacheInitialized = true;
-      return;
-    }
-    cachedKeys = [];
-    cacheInitialized = true;
-  } catch {
-    cachedKeys = [];
-    cacheInitialized = true;
+  if (changed) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+    cachedKeys = migrated;
   }
 }
 
-/** Ensure cache is loaded. Returns the loading promise. */
-function ensureCache(): Promise<void> {
-  if (cacheInitialized) return Promise.resolve();
-  if (!cachePromise) cachePromise = loadAndCache();
-  return cachePromise;
-}
+// ─── Public API (sync) ──────────────────────────────────────────────
 
-// ─── Public API (sync, uses cache) ─────────────────────────────────
+// Initialize cache on module load
+initCacheSync();
+// Start background decryption if needed
+if (!decryptionDone) decryptAllKeys().catch(() => {});
+// Fire-and-forget migration
+if (decryptionDone) migrateUnencryptedKeys().catch(() => {});
 
 /**
  * Returns active keys grouped per provider (array of keys for rotation).
- * Sync function — uses in-memory cache that is populated async on first call.
- * If cache isn't ready yet, returns empty (keys will be available on next render).
+ * Sync function — returns decrypted keys if available, raw keys otherwise.
  */
 export function getActiveKeysMulti(): Record<string, string[]> {
-  // Trigger async load if not started (fire-and-forget for current call)
-  if (!cacheInitialized) ensureCache();
-
+  const source = decryptionDone ? decryptedKeys : cachedKeys;
   const result: Record<string, string[]> = {};
-  for (const pk of cachedKeys) {
+  for (const pk of source) {
     const valid = pk.keys.filter(k => k.apiKey && k.status !== "error").map(k => k.apiKey);
     if (valid.length > 0) result[pk.providerId] = valid;
   }
   return result;
 }
 
-/** Legacy single-key API kept for backward compatibility */
+/** Legacy single-key API */
 export function getActiveKeys(): Record<string, string> {
   const multi = getActiveKeysMulti();
   const flat: Record<string, string> = {};
@@ -185,12 +190,11 @@ export function getActiveKeys(): Record<string, string> {
 }
 
 /**
- * Load provider keys (async). Use this when you need to await full decryption
- * before proceeding (e.g., on mount, before processing).
+ * Load provider keys (async, waits for full decryption).
  */
 export async function loadProviderKeys(): Promise<ProviderKeys[]> {
-  await ensureCache();
-  return cachedKeys;
+  if (!decryptionDone) await decryptAllKeys();
+  return decryptedKeys;
 }
 
 export async function saveProviderKeys(keys: ProviderKeys[]) {
@@ -206,16 +210,17 @@ export async function saveProviderKeys(keys: ProviderKeys[]) {
     encrypted.push({ ...pk, keys: encKeys });
   }
   localStorage.setItem(STORAGE_KEY, JSON.stringify(encrypted));
-  // Update cache immediately
-  cachedKeys = keys;
-  cacheInitialized = true;
+  cachedKeys = encrypted;
+  decryptedKeys = keys;
+  decryptionDone = true;
 }
 
 /**
- * Force-refresh the cache from localStorage (e.g., after external changes).
+ * Force-refresh the cache from localStorage.
  */
 export async function refreshKeyCache(): Promise<void> {
-  cacheInitialized = false;
-  cachePromise = null;
-  await ensureCache();
+  decryptionDone = false;
+  initCacheSync();
+  if (!decryptionDone) await decryptAllKeys();
+  await migrateUnencryptedKeys();
 }

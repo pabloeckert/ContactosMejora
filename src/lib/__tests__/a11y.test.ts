@@ -14,14 +14,14 @@ describe("Accessibility — Markup Checks", () => {
     const content = readFileSync(indexPath, "utf-8");
 
     // Check that all button elements have aria-label or text content
-    const buttonMatches = content.match(/<button[^>]*>/g) || [];
+    // Match full <button>...</button> blocks to capture multi-line attributes
+    const buttonMatches = content.match(/<button[\s\S]*?<\/button>/g) || [];
     for (const button of buttonMatches) {
       const hasAriaLabel = button.includes("aria-label");
       const hasTitle = button.includes("title=");
       // Buttons should have either aria-label, title, or visible text (checked in child content)
       if (!hasAriaLabel && !hasTitle) {
-        // This is a warning — the button might have text content
-        console.log(`⚠️ Button without aria-label or title: ${button.slice(0, 80)}`);
+        console.log(`⚠️ Button without aria-label or title: ${button.slice(0, 120)}`);
       }
     }
     expect(buttonMatches.length).toBeGreaterThan(0); // At least we have buttons
