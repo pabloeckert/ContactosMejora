@@ -304,20 +304,33 @@ async function callAIWithFallback(
 
     for (let i = 0; i < keys.length; i++) {
       const key = keys[i];
-      try {
-        const config = buildConfig(provider, key);
-        const contacts = await callAI(config, systemPrompt, userPrompt);
-        const label = keys.length > 1 ? ` [key ${i + 1}/${keys.length}]` : "";
-        return { contacts, usedProvider: `${config.name}${label}` };
-      } catch (e) {
-        const msg = (e as Error).message;
-        errors.push(`${provider}#${i + 1}: ${msg.slice(0, 100)}`);
-        if (msg.includes("RATE_LIMIT") || msg.includes("CREDITS_EXHAUSTED") || msg.includes("AUTH_FAIL")) {
-          console.log(`${provider} key ${i + 1} exhausted/invalid, trying next key/provider...`);
+      const MAX_RETRIES = 2;
+      for (let retry = 0; retry <= MAX_RETRIES; retry++) {
+        try {
+          const config = buildConfig(provider, key);
+          const contacts = await callAI(config, systemPrompt, userPrompt);
+          const label = keys.length > 1 ? ` [key ${i + 1}/${keys.length}]` : "";
+          return { contacts, usedProvider: `${config.name}${label}` };
+        } catch (e) {
+          const msg = (e as Error).message;
+          // Don't retry on auth/credits errors
+          if (msg.includes("CREDITS_EXHAUSTED") || msg.includes("AUTH_FAIL")) {
+            errors.push(`${provider}#${i + 1}: ${msg.slice(0, 100)}`);
+            break; // Move to next key
+          }
+          if (msg.includes("RATE_LIMIT")) {
+            errors.push(`${provider}#${i + 1}: ${msg.slice(0, 100)}`);
+            break; // Move to next key (rotation handles this)
+          }
+          // Transient error — retry with backoff
+          if (retry < MAX_RETRIES) {
+            const delay = Math.min(1000 * Math.pow(2, retry), 4000); // 1s, 2s, 4s max
+            await new Promise(r => setTimeout(r, delay));
+            continue;
+          }
+          errors.push(`${provider}#${i + 1}: ${msg.slice(0, 100)}`);
           continue;
         }
-        // Other error → still try next
-        continue;
       }
     }
   }
