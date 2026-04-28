@@ -1,6 +1,7 @@
 /**
  * Gestión de API keys en localStorage con cifrado AES-GCM (Web Crypto API).
- * Separado del componente para evitar warnings de Fast Refresh (HMR).
+ * El cifrado es transparente: las funciones públicas mantienen la API sync
+ * usando un cache en memoria que se llena async en background.
  */
 
 export interface KeyEntry {
@@ -21,6 +22,12 @@ const LEGACY_KEY = "contactunifier_api_keys";
 const ENC_KEY_STORAGE = "__mc_enc_key__";
 const ENC_MARKER = "__enc__:";
 
+// ─── In-memory cache for sync access ───────────────────────────────
+
+let cachedKeys: ProviderKeys[] = [];
+let cacheInitialized = false;
+let cachePromise: Promise<void> | null = null;
+
 // ─── Web Crypto helpers ─────────────────────────────────────────────
 
 async function getOrCreateEncryptionKey(): Promise<CryptoKey> {
@@ -40,7 +47,6 @@ export async function encryptString(plain: string): Promise<string> {
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const encoded = new TextEncoder().encode(plain);
   const cipherBuf = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, encoded);
-  // Prepend IV (12 bytes) to ciphertext, then base64-encode
   const combined = new Uint8Array(iv.length + cipherBuf.byteLength);
   combined.set(iv, 0);
   combined.set(new Uint8Array(cipherBuf), iv.length);
@@ -85,14 +91,14 @@ async function migrateUnencryptedKeys(): Promise<void> {
   if (changed) localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
 }
 
-// ─── Public API ─────────────────────────────────────────────────────
+// ─── Async loader (fills cache) ─────────────────────────────────────
 
-export async function loadProviderKeys(): Promise<ProviderKeys[]> {
+async function loadAndCache(): Promise<void> {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as ProviderKeys[];
-      // Migrate any remaining plain-text keys (fire-and-forget for next load)
+      // Fire-and-forget migration of any remaining plain-text keys
       migrateUnencryptedKeys();
       // Decrypt all keys for in-memory use
       const decrypted: ProviderKeys[] = [];
@@ -103,7 +109,9 @@ export async function loadProviderKeys(): Promise<ProviderKeys[]> {
         }
         decrypted.push({ ...pk, keys });
       }
-      return decrypted;
+      cachedKeys = decrypted;
+      cacheInitialized = true;
+      return;
     }
     // Migration from v1 (legacy format)
     const legacy = localStorage.getItem(LEGACY_KEY);
@@ -122,8 +130,7 @@ export async function loadProviderKeys(): Promise<ProviderKeys[]> {
         });
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(encrypted));
-      // Return decrypted for in-memory use
-      return old.map(o => ({
+      cachedKeys = old.map(o => ({
         providerId: o.providerId,
         keys: [{
           id: crypto.randomUUID(),
@@ -132,9 +139,58 @@ export async function loadProviderKeys(): Promise<ProviderKeys[]> {
           lastTested: o.lastTested,
         }],
       }));
+      cacheInitialized = true;
+      return;
     }
-    return [];
-  } catch { return []; }
+    cachedKeys = [];
+    cacheInitialized = true;
+  } catch {
+    cachedKeys = [];
+    cacheInitialized = true;
+  }
+}
+
+/** Ensure cache is loaded. Returns the loading promise. */
+function ensureCache(): Promise<void> {
+  if (cacheInitialized) return Promise.resolve();
+  if (!cachePromise) cachePromise = loadAndCache();
+  return cachePromise;
+}
+
+// ─── Public API (sync, uses cache) ─────────────────────────────────
+
+/**
+ * Returns active keys grouped per provider (array of keys for rotation).
+ * Sync function — uses in-memory cache that is populated async on first call.
+ * If cache isn't ready yet, returns empty (keys will be available on next render).
+ */
+export function getActiveKeysMulti(): Record<string, string[]> {
+  // Trigger async load if not started (fire-and-forget for current call)
+  if (!cacheInitialized) ensureCache();
+
+  const result: Record<string, string[]> = {};
+  for (const pk of cachedKeys) {
+    const valid = pk.keys.filter(k => k.apiKey && k.status !== "error").map(k => k.apiKey);
+    if (valid.length > 0) result[pk.providerId] = valid;
+  }
+  return result;
+}
+
+/** Legacy single-key API kept for backward compatibility */
+export function getActiveKeys(): Record<string, string> {
+  const multi = getActiveKeysMulti();
+  const flat: Record<string, string> = {};
+  for (const [k, v] of Object.entries(multi)) flat[k] = v[0];
+  return flat;
+}
+
+/**
+ * Load provider keys (async). Use this when you need to await full decryption
+ * before proceeding (e.g., on mount, before processing).
+ */
+export async function loadProviderKeys(): Promise<ProviderKeys[]> {
+  await ensureCache();
+  return cachedKeys;
 }
 
 export async function saveProviderKeys(keys: ProviderKeys[]) {
@@ -150,25 +206,16 @@ export async function saveProviderKeys(keys: ProviderKeys[]) {
     encrypted.push({ ...pk, keys: encKeys });
   }
   localStorage.setItem(STORAGE_KEY, JSON.stringify(encrypted));
+  // Update cache immediately
+  cachedKeys = keys;
+  cacheInitialized = true;
 }
 
 /**
- * Returns active keys grouped per provider (array of keys for rotation).
+ * Force-refresh the cache from localStorage (e.g., after external changes).
  */
-export async function getActiveKeysMulti(): Promise<Record<string, string[]>> {
-  const all = await loadProviderKeys();
-  const result: Record<string, string[]> = {};
-  for (const pk of all) {
-    const valid = pk.keys.filter(k => k.apiKey && k.status !== "error").map(k => k.apiKey);
-    if (valid.length > 0) result[pk.providerId] = valid;
-  }
-  return result;
-}
-
-/** Legacy single-key API kept for backward compatibility */
-export async function getActiveKeys(): Promise<Record<string, string>> {
-  const multi = await getActiveKeysMulti();
-  const flat: Record<string, string> = {};
-  for (const [k, v] of Object.entries(multi)) flat[k] = v[0];
-  return flat;
+export async function refreshKeyCache(): Promise<void> {
+  cacheInitialized = false;
+  cachePromise = null;
+  await ensureCache();
 }

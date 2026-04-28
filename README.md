@@ -30,10 +30,23 @@ Groq · OpenRouter · Together AI · Cerebras · DeepInfra · SambaNova · Mistr
 
 ```bash
 npm install --legacy-peer-deps
-npm run dev     # http://localhost:8080
-npm test        # 174 tests unitarios
-npm run build   # build producción
+npm run dev       # http://localhost:8080
+npm test          # 174 tests unitarios (Vitest)
+npm run test:e2e  # 14 tests E2E (Playwright)
+npm run build     # build producción
 ```
+
+## CI/CD
+
+Push a `main` ejecuta GitHub Actions automáticamente:
+
+1. **Lint** — ESLint + TypeScript
+2. **Unit tests** — 174 tests con Vitest
+3. **Build** — Vite producción
+4. **E2E tests** — 14 tests con Playwright (Chromium)
+5. **Deploy** — SCP a Hostinger
+
+Si cualquier paso falla, el deploy no se ejecuta.
 
 ## Deploy
 
