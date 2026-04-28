@@ -20,7 +20,7 @@ function loadFlags(): FeatureFlags {
   try {
     const stored = localStorage.getItem(FLAG_STORAGE);
     if (stored) return { ...DEFAULT_FLAGS, ...JSON.parse(stored) };
-  } catch {}
+  } catch { /* localStorage unavailable */ }
   return { ...DEFAULT_FLAGS };
 }
 
@@ -34,7 +34,7 @@ export function setFlag(flag: string, value: boolean): void {
   flags[flag] = value;
   try {
     localStorage.setItem(FLAG_STORAGE, JSON.stringify(flags));
-  } catch {}
+  } catch { /* localStorage unavailable */ }
 }
 
 export function getAllFlags(): FeatureFlags {
