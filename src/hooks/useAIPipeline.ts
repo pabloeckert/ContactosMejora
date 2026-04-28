@@ -198,7 +198,9 @@ export function useAIPipeline(options: UseAIPipelineOptions) {
     return contacts;
   }, []);
 
-  const [activeKeys, setActiveKeys] = useState<Record<string, string[]>>({});
+  // Initialize sync (works with mocks) and async (works with real crypto)
+  const initialKeys = (() => { try { const r = getActiveKeysMulti(); return r instanceof Promise ? {} : r; } catch { return {}; } })();
+  const [activeKeys, setActiveKeys] = useState<Record<string, string[]>>(initialKeys);
   useEffect(() => { Promise.resolve(getActiveKeysMulti()).then(setActiveKeys).catch(console.error); }, []);
   const activeProviders = useMemo(() => Object.keys(activeKeys).filter(k => activeKeys[k].length > 0), [activeKeys]);
 
