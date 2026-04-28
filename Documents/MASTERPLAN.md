@@ -569,9 +569,13 @@ Parseo → Mapeo → Reglas (80%) → IA Limpieza → IA Verificación → IA Co
 | 12.6 | Encriptar API keys con Web Crypto API | Cybersecurity | Media | 🟡 Alta | ✅ v10.8 |
 | 12.7 | 3er proveedor IA verificado (para pipeline completo) | Backend Dev | Baja | 🟡 Alta | ⏳ |
 | 12.8 | Gemini key: verificar activación | Backend Dev | Baja | 🟢 Media | ⏳ |
-| 12.9 | Deploy Edge Functions (log-error + clean-contacts) | DevOps | Baja | 🟢 Media | ⏳ |
-| 12.10 | React.lazy para rutas secundarias | Frontend | Baja | 🟢 Media | ⏳ |
-| 12.11 | TTL de 30 días para snapshots de historial | DBA | Baja | 🟢 Media | ⏳ |
+| 12.9 | Deploy Edge Functions (log-error + clean-contacts) | DevOps | Baja | 🟢 Media | ⏳ (necesita Supabase token) |
+| 12.10 | React.lazy para rutas secundarias | Frontend | Baja | 🟢 Media | ⏳ (sub-agente) |
+| 12.11 | TTL de 30 días para snapshots de historial | DBA | Baja | 🟢 Media | ⏳ (sub-agente) |
+| 12.12 | Retry con backoff exponencial en llamadas IA | Backend Dev | Media | 🟢 Media | ⏳ (sub-agente) |
+| 12.13 | Cookie consent banner (GDPR) | Legal, Frontend | Baja | 🟢 Media | ⏳ (sub-agente) |
+| 12.14 | FAQ / Help Center | Customer Success | Baja | 🟢 Media | ⏳ (sub-agente) |
+| 12.15 | PWA install prompt + iOS standalone | Mobile Devs | Baja | 🟢 Media | ⏳ (sub-agente) |
 
 ### 📋 ETAPA 13 — Crecimiento y Monetización (Sprint 2)
 
@@ -583,8 +587,8 @@ Parseo → Mapeo → Reglas (80%) → IA Limpieza → IA Verificación → IA Co
 | 13.4 | Límites Free: 500 contacts/lote, 3 lotes/día | Backend Dev | Media | 🟡 Alta | ⏳ |
 | 13.5 | Blog SEO: 3 artículos clave | Content Manager | Baja | 🟡 Alta | ⏳ |
 | 13.6 | Product Hunt launch | Growth Manager | Baja | 🟡 Alta | ⏳ |
-| 13.7 | Cookie consent banner | Legal, Frontend | Baja | 🟢 Media | ⏳ |
-| 13.8 | FAQ + Help Center | Customer Success | Baja | 🟢 Media | ⏳ |
+| 13.7 | Cookie consent banner | Legal, Frontend | Baja | 🟢 Media | ⏳ (sub-agente, movido a 12.13) |
+| 13.8 | FAQ + Help Center | Customer Success | Baja | 🟢 Media | ⏳ (sub-agente, movido a 12.14) |
 | 13.9 | Feedback in-app (thumbs up/down) | UX Researcher | Baja | 🟢 Media | ⏳ |
 
 ### 📋 ETAPA 14 — Escala (Sprint 3+)
