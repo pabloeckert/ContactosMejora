@@ -1,7 +1,7 @@
 # 📋 MejoraContactos — PLAN GENERAL
 
-> **Última sesión:** Sesión 6 — 2026-05-02 06:49 GMT+8
-> **Versión:** v12.5
+> **Última sesión:** Sesión 7 — 2026-05-02 07:13 GMT+8
+> **Versión:** v12.6
 > **Estado:** ✅ BETA — Producción activa
 
 ---
@@ -44,6 +44,7 @@
 | **Sesión 4** | **v12.3** | **219** | **Edge Function: 3→1 DB queries, L1 cache, structured timing logs** |
 | **Sesión 5** | **v12.4** | **219** | **Sentry integration: error tracking, tags, severity routing, dedup** |
 | **Sesión 6** | **v12.5** | **219** | **Sentry lazy-load: @sentry/react code-split 81KB del main bundle (-21%)** |
+| **Sesión 7** | **v12.6** | **219** | **Dead dep removal: date-fns eliminado (0 imports, -37MB node_modules)** |
 
 ### 📋 Pendientes de Usuario
 
@@ -59,13 +60,12 @@
 
 ## Próximas Micro-Misiones (ordenadas por impacto)
 
-### 🥇 Opción 1: date-fns Tree-Shaking + Import Optimization (Prioridad: Performance)
+### 🥇 Opción 1: Dead Dependencies Audit (Prioridad: Performance/Mantenibilidad)
 **Tiempo estimado:** 15 min
-**Impacto:** MEDIO — date-fns tiene 65 refs en el bundle principal
-- Verificar imports de date-fns: `import { format } from "date-fns"` vs `import format from "date-fns/format"`
-- date-fns v3 soporta tree-shaking nativo, pero los barrel imports pueden impedirlo
-- Considerar reemplazar con `Intl.RelativeTimeFormat` para casos simples
-- Potencial ahorro: 10-30KB del bundle
+**Impacto:** MEDIO — Limpiar dependencias no usadas
+- Auditar `embla-carousel-react`, `cmdk`, `input-otp`, `react-day-picker`, `vaul`, `react-resizable-panels` — posibles dependencias muertas de shadcn/ui
+- Verificar `react-hook-form` + `@hookform/resolvers` — ¿se usan o son dead code?
+- Cada dep eliminada reduce `npm install` time y superficie de ataque
 
 ### 🥈 Opción 2: Sonner CSS-in-JS Optimization (Prioridad: Performance)
 **Tiempo estimado:** 20 min
@@ -500,6 +500,52 @@ captureError() [error-reporter.ts]
 1. 🥇 date-fns Tree-Shaking + Import Optimization (Performance)
 2. 🥈 Sonner CSS-in-JS Optimization / Replace with radix toast (Performance)
 3. 🥉 CSP Headers + Security Headers Audit (Seguridad)
+
+---
+
+### Sesión 7 — 2026-05-02 07:13 GMT+8
+
+**Micro-misión:** Dead Dependency Removal — date-fns
+
+**Análisis previo:**
+- PLAN recomendaba "date-fns tree-shaking optimization"
+- Investigación reveló que `date-fns` tiene **0 imports** en todo el código fuente
+- No aparece en ningún chunk del bundle de producción
+- Era una dependencia fantasma: en `package.json` pero nunca usada
+
+**Cambios realizados:**
+
+1. **`package.json`** (MODIFICADO):
+   - `date-fns` eliminado de dependencies
+   - `npm uninstall date-fns` → removido de `package.json` + `package-lock.json`
+
+**Impacto:**
+
+| Métrica | Antes | Después | Cambio |
+|---------|-------|---------|--------|
+| **node_modules** | ~date-fns 37MB | 0MB | **-37MB** |
+| **Bundle producción** | Sin date-fns | Sin date-fns | Sin cambio (ya no estaba) |
+| **npm install** | Más lento | Más rápido | Menos paquetes |
+| **Security audit** | Más deps | Menos deps | Superficie reducida |
+
+**Hallazgo:** La dependencia estaba en `package.json` desde el inicio del proyecto pero nunca se importó. Probablemente fue agregada por un template o scaffolding y nunca se usó.
+
+**Validación:**
+- ✅ 219/219 tests pasando
+- ✅ Build compila correctamente
+- ✅ 0 lint errors
+- ✅ Bundle idéntico (date-fns ya no estaba incluido)
+
+**Archivos modificados:**
+- `package.json`
+- `package-lock.json`
+
+**Push:** ❌ Requiere configurar credenciales GitHub (`git push origin main`)
+
+**Próximas micro-misiones recomendadas:**
+1. 🥇 Dead Dependencies Audit — embla-carousel-react, cmdk, input-otp, react-day-picker, vaul, react-resizable-panels
+2. 🥈 Sonner CSS-in-JS Optimization / Replace with radix toast
+3. 🥉 CSP Headers + Security Headers Audit
 
 ---
 
