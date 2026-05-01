@@ -15,10 +15,10 @@ const ALLOWED_ORIGINS = [
   "http://localhost:5173",
 ];
 
-// --- Rate limiting (DB-backed, cross-instance) ---
+// --- Rate limiting (DB-backed + L1 cache) ---
 const RATE_LIMIT_MAX = 30; // max requests per window
 const RATE_LIMIT_WINDOW_SEC = 60; // 1 minute window in seconds
-const CLEANUP_PROBABILITY = 0.01; // ~1% chance per request
+const L1_CACHE_TTL_MS = 8000; // 8 second L1 cache (balances accuracy vs latency)
 
 function getSupabaseAdmin() {
   const url = Deno.env.get("SUPABASE_URL");
@@ -30,88 +30,89 @@ function getSupabaseAdmin() {
 interface RateLimitResult {
   allowed: boolean;
   retryAfter?: number;
+  count: number;
+  source: "l1" | "db";
 }
+
+// ── L1 In-Memory Cache ─────────────────────────────────────
+// Keyed by IP, short TTL to avoid stale data while eliminating
+// redundant DB calls for rapid-fire requests from the same IP.
+const rateLimitCache = new Map<string, { result: RateLimitResult; expiresAt: number }>();
+
+function getCachedRateLimit(ip: string): RateLimitResult | null {
+  const entry = rateLimitCache.get(ip);
+  if (!entry) return null;
+  if (Date.now() > entry.expiresAt) {
+    rateLimitCache.delete(ip);
+    return null;
+  }
+  return { ...entry.result, source: "l1" };
+}
+
+function setCachedRateLimit(ip: string, result: RateLimitResult): void {
+  rateLimitCache.set(ip, { result, expiresAt: Date.now() + L1_CACHE_TTL_MS });
+  // Evict stale entries if cache grows too large (>500 IPs)
+  if (rateLimitCache.size > 500) {
+    const now = Date.now();
+    for (const [k, v] of rateLimitCache) {
+      if (now > v.expiresAt) rateLimitCache.delete(k);
+    }
+  }
+}
+
+// ── Atomic rate limit check (single DB call) ───────────────
+// Uses PostgreSQL function check_rate_limit() which does count + insert + cleanup
+// in one roundtrip, replacing the previous 3-query pattern.
 
 async function checkRateLimitDB(ip: string): Promise<RateLimitResult> {
   const { url, key } = getSupabaseAdmin();
-  const windowStart = new Date(Date.now() - RATE_LIMIT_WINDOW_SEC * 1000).toISOString();
 
-  // Count entries for this IP in the current window
-  const countRes = await fetch(
-    `${url}/rest/v1/rate_limits?ip=eq.${encodeURIComponent(ip)}&timestamp=gte.${windowStart}&select=count`,
-    {
+  try {
+    const res = await fetch(`${url}/rest/v1/rpc/check_rate_limit`, {
+      method: "POST",
       headers: {
         apikey: key,
         Authorization: `Bearer ${key}`,
-        Prefer: "count=exact",
-        Range: "0-0",
+        "Content-Type": "application/json",
       },
-    }
-  );
+      body: JSON.stringify({
+        p_ip: ip,
+        p_window_sec: RATE_LIMIT_WINDOW_SEC,
+        p_max_requests: RATE_LIMIT_MAX,
+      }),
+    });
 
-  if (!countRes.ok) {
-    console.error("Rate limit count query failed:", await countRes.text());
-    // Fail-open: don't block on DB errors
-    return { allowed: true };
-  }
-
-  // Supabase returns count in Content-Range header when Prefer: count=exact
-  const contentRange = countRes.headers.get("Content-Range");
-  const count = contentRange ? parseInt(contentRange.split("/")[1] || "0", 10) : 0;
-
-  if (count >= RATE_LIMIT_MAX) {
-    // Calculate retry-after: need the oldest entry in the window
-    const oldestRes = await fetch(
-      `${url}/rest/v1/rate_limits?ip=eq.${encodeURIComponent(ip)}&timestamp=gte.${windowStart}&order=timestamp.asc&limit=1&select=timestamp`,
-      {
-        headers: {
-          apikey: key,
-          Authorization: `Bearer ${key}`,
-        },
-      }
-    );
-
-    let retryAfter = RATE_LIMIT_WINDOW_SEC;
-    if (oldestRes.ok) {
-      const rows = await oldestRes.json();
-      if (rows.length > 0) {
-        const oldest = new Date(rows[0].timestamp).getTime();
-        retryAfter = Math.ceil((oldest + RATE_LIMIT_WINDOW_SEC * 1000 - Date.now()) / 1000);
-        if (retryAfter < 1) retryAfter = 1;
-      }
+    if (!res.ok) {
+      console.error("[rate-limit] DB function failed:", res.status, await res.text());
+      return { allowed: true, count: 0, source: "db" }; // fail-open
     }
 
-    return { allowed: false, retryAfter };
+    const data = await res.json();
+    return {
+      allowed: data.allowed ?? true,
+      retryAfter: data.retry_after_sec,
+      count: data.current_count ?? 0,
+      source: "db",
+    };
+  } catch (err) {
+    console.error("[rate-limit] DB call error:", err);
+    return { allowed: true, count: 0, source: "db" }; // fail-open on network errors
   }
-
-  // Insert new entry (fire-and-forget to avoid adding latency)
-  fetch(`${url}/rest/v1/rate_limits`, {
-    method: "POST",
-    headers: {
-      apikey: key,
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json",
-      Prefer: "return=minimal",
-    },
-    body: JSON.stringify({ ip, timestamp: new Date().toISOString() }),
-  }).catch((err) => console.error("Rate limit insert failed:", err));
-
-  return { allowed: true };
 }
 
-async function cleanupOldEntries(): Promise<void> {
-  const { url, key } = getSupabaseAdmin();
-  const cutoff = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+/**
+ * Combined rate limit check: L1 cache first, then DB.
+ * Caches the result for L1_CACHE_TTL_MS to avoid redundant DB calls.
+ */
+async function checkRateLimit(ip: string): Promise<RateLimitResult> {
+  // L1 hit: return cached result (0ms latency)
+  const cached = getCachedRateLimit(ip);
+  if (cached) return cached;
 
-  // Delete entries older than 5 minutes
-  fetch(`${url}/rest/v1/rate_limits?timestamp=lt.${cutoff}`, {
-    method: "DELETE",
-    headers: {
-      apikey: key,
-      Authorization: `Bearer ${key}`,
-      Prefer: "return=minimal",
-    },
-  }).catch((err) => console.error("Rate limit cleanup failed:", err));
+  // L1 miss: single DB call via RPC function
+  const result = await checkRateLimitDB(ip);
+  setCachedRateLimit(ip, result);
+  return result;
 }
 
 function getCorsHeaders(origin: string | null): Record<string, string> {
@@ -400,6 +401,7 @@ async function verifyJWT(authHeader: string | null): Promise<{ valid: boolean; u
 }
 
 Deno.serve(async (req) => {
+  const t0 = Date.now();
   const corsHeaders = getCorsHeaders(req.headers.get("origin"));
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -412,10 +414,11 @@ Deno.serve(async (req) => {
     );
   }
 
-  // Rate limiting by IP (DB-backed, cross-instance)
+  // Rate limiting: L1 cache (memory, 0ms) → DB (single RPC call)
   const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  const rateLimit = await checkRateLimitDB(clientIp);
+  const rateLimit = await checkRateLimit(clientIp);
   if (!rateLimit.allowed) {
+    console.log(`[rate-limit] BLOCKED ip=${clientIp} count=${rateLimit.count} retryAfter=${rateLimit.retryAfter}s`);
     return new Response(
       JSON.stringify({
         error: `Rate limit excedido. Máximo ${RATE_LIMIT_MAX} requests por minuto. Reintentá en ${rateLimit.retryAfter}s.`,
@@ -431,11 +434,7 @@ Deno.serve(async (req) => {
       }
     );
   }
-
-  // Probabilistic cleanup of old rate limit entries (~1% of requests)
-  if (Math.random() < CLEANUP_PROBABILITY) {
-    cleanupOldEntries();
-  }
+  const tRateLimit = Date.now();
 
   // Input validation (Zod-like, inline for Deno Edge Function without npm)
   let body: {
@@ -535,13 +534,15 @@ Deno.serve(async (req) => {
       if (i === 0) allStages.push(...result.stages);
     }
 
+    const elapsed = Date.now() - t0;
     const stageNames = [
       pipelineStages?.clean || "groq",
       pipelineStages?.verify || "openrouter",
       pipelineStages?.correct || "gemini",
     ];
+    console.log(`[pipeline] contacts=${sanitizedContacts.length} elapsed=${elapsed}ms rateLimit=${Date.now() - tRateLimit}ms provider=Pipeline`);
     return new Response(JSON.stringify({
-      contacts: allCleaned, provider: `Pipeline (${stageNames.join(" → ")})`, stages: allStages,
+      contacts: allCleaned, provider: `Pipeline (${stageNames.join(" → ")})`, stages: allStages, elapsed,
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
@@ -567,7 +568,9 @@ Deno.serve(async (req) => {
     }
   }
 
-  return new Response(JSON.stringify({ contacts: allCleaned, provider: usedProvider }), {
+  const elapsed = Date.now() - t0;
+  console.log(`[single] contacts=${sanitizedContacts.length} elapsed=${elapsed}ms rateLimit=${Date.now() - tRateLimit}ms provider=${usedProvider}`);
+  return new Response(JSON.stringify({ contacts: allCleaned, provider: usedProvider, elapsed }), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 });
