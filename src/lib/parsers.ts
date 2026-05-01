@@ -1,4 +1,4 @@
-import Papa from "papaparse";
+// Lazy load: papaparse loaded on-demand (not in initial bundle)
 import { handleParseError } from "./error-handler";
 import type { ParsedFile, RawContact } from "@/types/contact";
 
@@ -6,7 +6,12 @@ function genId(): string {
   return crypto.randomUUID();
 }
 
-export function parseCSV(file: File): Promise<ParsedFile> {
+/**
+ * CSV parsing — papaparse loaded dynamically to keep it out of the initial bundle.
+ * (~30KB bundled, only needed when user uploads a CSV file)
+ */
+export async function parseCSV(file: File): Promise<ParsedFile> {
+  const Papa = (await import("papaparse")).default;
   return new Promise((resolve, reject) => {
     // Read as ArrayBuffer and decode as UTF-8 to handle BOM and special chars correctly
     const reader = new FileReader();

@@ -1,9 +1,42 @@
 /**
  * Validación avanzada de teléfonos con libphonenumber-js.
  * Soporte E.164, detección de tipo (móvil/fijo), compatibilidad WhatsApp.
+ *
+ * PERFORMANCE: libphonenumber-js se carga dinámicamente para mantenerla
+ * fuera del bundle inicial (~150KB). Se preload en background al importar
+ * este módulo — para cuando el usuario procese contactos, ya estará lista.
  */
 
-import { parsePhoneNumber, isValidPhoneNumber, type CountryCode } from 'libphonenumber-js';
+import type { CountryCode } from 'libphonenumber-js';
+
+// ── Lazy loader for libphonenumber-js ─────────────────────
+// Starts preloading immediately; cached after first load.
+
+type PhoneNumberLib = typeof import('libphonenumber-js');
+
+let phoneLibPromise: Promise<PhoneNumberLib> | null = null;
+let phoneLibSync: PhoneNumberLib | null = null;
+
+function getPhoneLib(): Promise<PhoneNumberLib> {
+  if (phoneLibSync) return Promise.resolve(phoneLibSync);
+  if (!phoneLibPromise) {
+    phoneLibPromise = import('libphonenumber-js').then(mod => {
+      phoneLibSync = mod;
+      return mod;
+    });
+  }
+  return phoneLibPromise;
+}
+
+// Kick off preload immediately (non-blocking, runs in background)
+getPhoneLib();
+
+// ── Basic sync validation (fallback when lib not yet loaded) ──
+
+function basicPhoneCheck(phone: string): boolean {
+  const digits = phone.replace(/\D/g, '');
+  return digits.length >= 7 && digits.length <= 15;
+}
 
 export interface PhoneValidation {
   isValid: boolean;
@@ -196,6 +229,11 @@ function getLineTypeLabel(type: string | undefined): string {
 /**
  * Valida un número de teléfono y retorna información completa.
  *
+ * PERFORMANCE: usa libphonenumber-js lazy-loaded. El preload arranca al importar
+ * este módulo, así que para cuando el usuario procese contactos ya estará lista.
+ * Si se llama antes de que cargue (ej: render inicial de ContactsTable), usa
+ * fallback síncrono básico (solo longitud de dígitos).
+ *
  * @param phone - Número de teléfono en cualquier formato
  * @param defaultCountry - Código de país por defecto (ISO 3166-1 alpha-2)
  * @returns PhoneValidation con toda la información del número
@@ -214,6 +252,22 @@ export function validatePhone(
       type: 'invalid', whatsappUrl: '', originalInput,
     };
   }
+
+  // If the library hasn't loaded yet, use basic sync fallback.
+  // The preload starts at module load time, so this path is rare
+  // and only hits during the first few renders before the lib arrives.
+  if (!phoneLibSync) {
+    const basicValid = basicPhoneCheck(phone);
+    return {
+      isValid: basicValid,
+      e164: basicValid ? phone.replace(/\s/g, '') : '',
+      isWhatsAppCompatible: false, // Can't determine without full lib
+      country: '', countryName: '', nationalNumber: phone,
+      type: 'unknown', whatsappUrl: '', originalInput,
+    };
+  }
+
+  const { parsePhoneNumber } = phoneLibSync;
 
   // Pre-procesar formatos locales
   const preprocessed = preprocessPhone(phone, defaultCountry);

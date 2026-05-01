@@ -30,7 +30,7 @@ export default defineConfig(({ mode }) => ({
           router: ["react-router-dom"],
           supabase: ["@supabase/supabase-js"],
           query: ["@tanstack/react-query"],
-          charts: ["recharts"],
+          "phone-lib": ["libphonenumber-js"],
           ui: [
             "@radix-ui/react-dialog",
             "@radix-ui/react-dropdown-menu",

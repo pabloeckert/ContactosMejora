@@ -1,7 +1,7 @@
 # 📋 MejoraContactos — PLAN GENERAL
 
-> **Última sesión:** Sesión 2 — 2026-05-02 05:32 GMT+8
-> **Versión:** v12.1
+> **Última sesión:** Sesión 3 — 2026-05-02 05:42 GMT+8
+> **Versión:** v12.2
 > **Estado:** ✅ BETA — Producción activa
 
 ---
@@ -16,7 +16,7 @@
 | **Lint** | ✅ 0 errores | 4 warnings pre-existentes (no críticos) |
 | **Deploy** | ✅ Automático | GitHub Actions → SCP → Hostinger, rollback incluido |
 | **Seguridad** | ✅ Sólido | AES-GCM, CSP, JWT, rate limiting, CORS whitelist |
-| **Performance** | ✅ Optimizado | Web Workers, chunk splitting, lazy loading, virtualización |
+| **Performance** | ✅ Optimizado | Web Workers, chunk splitting, lazy loading (xlsx, papaparse, libphonenumber), virtualización |
 | **UX** | ✅ Completo | Onboarding, dark mode, keyboard shortcuts, responsive |
 | **Legal** | ✅ GDPR | Privacy policy, terms, cookies, data retention |
 | **Edge Function** | ✅ Modernizado | Deno.serve(), type-safe, 12 proveedores con rotación |
@@ -40,6 +40,7 @@
 | Crecimiento | v12.0 | 199 | Pricing, blog, analytics, free tier |
 | **Sesión 1** | **v12.1** | **199** | **Edge Function modernizado, type safety, version sync** |
 | **Sesión 2** | **v12.1** | **219** | **Unified Error Handling, ErrorBoundaries granulares, captureError en pipeline** |
+| **Sesión 3** | **v12.2** | **219** | **Lazy loading: papaparse, libphonenumber-js; recharts eliminado; bundle -31%** |
 
 ### 📋 Pendientes de Usuario
 
@@ -55,15 +56,7 @@
 
 ## Próximas Micro-Misiones (ordenadas por impacto)
 
-### 🥇 Opción 1: Performance — Lazy Load Heavy Dependencies (Prioridad: Performance)
-**Tiempo estimado:** 20 min
-**Impacto:** ALTO — Reducir bundle inicial
-- Dynamic import de `xlsx` (428KB) solo cuando se necesite
-- Dynamic import de `recharts` solo en Dashboard
-- Dynamic import de `papaparse` solo en importación
-- Potencial ahorro: ~600KB del bundle inicial
-
-### 🥈 Opción 2: Database Query Optimization en Edge Function (Prioridad: Performance)
+### 🥇 Opción 1: Database Query Optimization en Edge Function (Prioridad: Performance)
 **Tiempo estimado:** 25 min
 **Impacto:** MEDIO-ALTO — Reducir latencia del backend
 - Consolidar 3 queries de rate limiting en 1 upsert
@@ -71,13 +64,21 @@
 - Implementar in-memory sliding window como cache L1
 - Reducir DB calls de 3/request a 1/request
 
-### 🥉 Opción 3: Sentry Integration (Prioridad: Observabilidad)
+### 🥈 Opción 2: Sentry Integration (Prioridad: Observabilidad)
 **Tiempo estimado:** 15 min
 **Impacto:** MEDIO — Error tracking centralizado en producción
 - Crear cuenta en sentry.io (o usar DSN existente)
 - npm install @sentry/react
 - Reemplazar captureError() con Sentry.captureException()
 - Ya preparado: error-handler.ts + error-reporter.ts con comentarios de migración
+
+### 🥉 Opción 3: Lucide React Tree-Shaking Audit (Prioridad: Performance)
+**Tiempo estimado:** 15 min
+**Impacto:** MEDIO — lucide-react es 37MB en node_modules
+- Verificar que Vite tree-shakea correctamente los iconos no usados
+- Considerar importar iconos individuales: `import { Play } from "lucide-react/dist/esm/icons/play"`
+- Auditar qué iconos se usan realmente (31 imports detectados)
+- Potencial ahorro: 20-50KB del bundle
 
 ---
 
@@ -241,6 +242,63 @@
 - `src/pages/Index.tsx`
 
 **Próxima micro-misión recomendada:** Performance — Lazy Load Heavy Dependencies (xlsx, recharts, papaparse)
+
+---
+
+### Sesión 3 — 2026-05-02 05:42 GMT+8
+
+**Micro-misión:** Lazy Loading de Dependencias Pesadas + Eliminación de Dead Code
+
+**Objetivo:** Reducir el bundle inicial de 432.75 KB a <300 KB aplicando lazy loading a las 3 dependencias más pesadas.
+
+**Cambios realizados:**
+
+1. **`src/lib/parsers.ts`** (MODIFICADO):
+   - `import Papa from "papaparse"` → `const Papa = (await import("papaparse")).default`
+   - parseCSV ahora es async (era sync) — papaparse se carga solo al parsear CSV
+   - papaparse sale del bundle inicial (19.81 KB / gzip: 7.41 KB)
+
+2. **`src/lib/phone-validator.ts`** (MODIFICADO):
+   - `import { parsePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js'` → lazy loader con preload
+   - Patrón: `getPhoneLib()` inicia preload al importar el módulo (non-blocking)
+   - Si la lib no está cargada al primer `validatePhone()`, usa fallback básico (solo longitud de dígitos)
+   - Una vez cargada, toda validación subsiguiente usa la lib completa
+   - libphonenumber-js forzada a chunk separado via `manualChunks` en vite.config.ts
+
+3. **`vite.config.ts`** (MODIFICADO):
+   - Eliminado `charts: ["recharts"]` de manualChunks (recharts eliminado)
+   - Agregado `phone-lib: ["libphonenumber-js"]` para forzar chunk separado
+
+4. **`package.json`** (MODIFICADO):
+   - `recharts` eliminado de dependencies (nunca importado en código — dead dependency)
+
+**Impacto medido (bundle size):**
+
+| Métrica | Antes (Sesión 2) | Después (Sesión 3) | Cambio |
+|---------|-------------------|---------------------|--------|
+| **Main bundle (index)** | 432.75 KB / gzip: 122.99 KB | 295.97 KB / gzip: 85.60 KB | **-31.6%** |
+| **Total JS** | ~433 KB | ~479 KB (en chunks separados) | +10.6% total, pero initial load -31.6% |
+| **Chunks separados** | xlsx (428 KB) | xlsx (428 KB) + phone-lib (182 KB) + papaparse (19 KB) | Mejor caching |
+
+**Detalle de chunks lazy-loaded:**
+- `xlsx-CWc3kuOC.js` — 428.99 KB (gzip: 143.07 KB) — solo al parsear Excel
+- `phone-lib-D34IZc2y.js` — 182.76 KB (gzip: 45.33 KB) — preload en background, fallback sync disponible
+- `papaparse.min-Cpf2iWR9.js` — 19.81 KB (gzip: 7.41 KB) — solo al parsear CSV
+
+**Validación:**
+- ✅ 219/219 tests pasando
+- ✅ Build compila correctamente
+- ✅ 0 lint errors (4 warnings pre-existentes)
+- ✅ TypeScript sin errores
+- ✅ Performance budget: index chunk 290KB < 450KB limit
+
+**Archivos modificados:**
+- `src/lib/parsers.ts`
+- `src/lib/phone-validator.ts`
+- `vite.config.ts`
+- `package.json` / `package-lock.json`
+
+**Próxima micro-misión recomendada:** Database Query Optimization en Edge Function
 
 ---
 
