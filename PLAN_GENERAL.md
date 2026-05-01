@@ -1,7 +1,7 @@
 # 📋 MejoraContactos — PLAN GENERAL
 
-> **Última sesión:** Sesión 7 — 2026-05-02 07:13 GMT+8
-> **Versión:** v12.6
+> **Última sesión:** Sesión 8 — 2026-05-02 07:20 GMT+8
+> **Versión:** v12.7
 > **Estado:** ✅ BETA — Producción activa
 
 ---
@@ -45,6 +45,7 @@
 | **Sesión 5** | **v12.4** | **219** | **Sentry integration: error tracking, tags, severity routing, dedup** |
 | **Sesión 6** | **v12.5** | **219** | **Sentry lazy-load: @sentry/react code-split 81KB del main bundle (-21%)** |
 | **Sesión 7** | **v12.6** | **219** | **Dead dep removal: date-fns eliminado (0 imports, -37MB node_modules)** |
+| **Sesión 8** | **v12.7** | **219** | **Dead deps audit: 9 deps eliminadas (embla, cmdk, input-otp, day-picker, vaul, resizable-panels, hookform, resolvers, zod) — -19MB** |
 
 ### 📋 Pendientes de Usuario
 
@@ -60,27 +61,27 @@
 
 ## Próximas Micro-Misiones (ordenadas por impacto)
 
-### 🥇 Opción 1: Dead Dependencies Audit (Prioridad: Performance/Mantenibilidad)
-**Tiempo estimado:** 15 min
-**Impacto:** MEDIO — Limpiar dependencias no usadas
-- Auditar `embla-carousel-react`, `cmdk`, `input-otp`, `react-day-picker`, `vaul`, `react-resizable-panels` — posibles dependencias muertas de shadcn/ui
-- Verificar `react-hook-form` + `@hookform/resolvers` — ¿se usan o son dead code?
-- Cada dep eliminada reduce `npm install` time y superficie de ataque
-
-### 🥈 Opción 2: Sonner CSS-in-JS Optimization (Prioridad: Performance)
+### 🥇 Opción 1: Sonner CSS-in-JS Optimization (Prioridad: Performance)
 **Tiempo estimado:** 20 min
 **Impacto:** MEDIO — sonner tiene 115 refs y CSS-in-JS inline (~15KB de estilos)
 - Auditar si sonner puede cargarse lazy (solo se necesita al mostrar toasts)
 - Considerar reemplazar con toast nativo de radix-ui (ya incluido en ui chunk)
 - O mover sonner a chunk separado con dynamic import
 
-### 🥉 Opción 3: CSP Headers + Security Headers Audit (Prioridad: Seguridad)
+### 🥈 Opción 2: CSP Headers + Security Headers Audit (Prioridad: Seguridad)
 **Tiempo estimado:** 20 min
 **Impacto:** MEDIO — Hardening de producción
 - Auditar CSP headers en Hostinger/.htaccess
 - Verificar X-Frame-Options, X-Content-Type-Options, Referrer-Policy
 - Agregar Strict-Transport-Security (HSTS)
 - Test con securityheaders.com
+
+### 🥉 Opción 3: Radix UI Unused Components Audit (Prioridad: Performance)
+**Tiempo estimado:** 15 min
+**Impacto:** BAJO-MEDIO — ui chunk es 96KB
+- Verificar qué componentes de @radix-ui se usan realmente
+- Los no usados se tree-shakean, pero pueden afectar install time
+- Considerar reducir la lista de radix packages a los efectivamente importados
 
 ---
 
@@ -543,9 +544,36 @@ captureError() [error-reporter.ts]
 **Push:** ❌ Requiere configurar credenciales GitHub (`git push origin main`)
 
 **Próximas micro-misiones recomendadas:**
-1. 🥇 Dead Dependencies Audit — embla-carousel-react, cmdk, input-otp, react-day-picker, vaul, react-resizable-panels
-2. 🥈 Sonner CSS-in-JS Optimization / Replace with radix toast
-3. 🥉 CSP Headers + Security Headers Audit
+1. 🥇 Sonner CSS-in-JS Optimization / Replace with radix toast
+2. 🥈 CSP Headers + Security Headers Audit
+3. 🥉 Radix UI Unused Components Audit
+
+---
+
+### Sesión 8 — 2026-05-02 07:20 GMT+8
+
+**Micro-misión:** Dead Dependencies Audit — 9 dependencias de shadcn/ui template
+
+**Análisis:**
+- 9 dependencias con 0 imports en todo el código fuente
+- Dependencias del template shadcn/ui nunca usadas en el proyecto
+- Total eliminado: ~19MB de node_modules
+
+**Dependencias eliminadas:**
+@hookform/resolvers (3MB), cmdk (1MB), embla-carousel-react (1MB), input-otp (1MB), react-day-picker (2MB), react-hook-form (2MB), react-resizable-panels (2MB), vaul (1MB), zod (6MB)
+
+**Impacto:** -9 deps, -19MB node_modules, bundle sin cambio (ya tree-shakeadas)
+
+**Validación:** ✅ 219/219 tests, ✅ build OK
+
+**Archivos:** package.json, package-lock.json
+
+**Push:** ❌ Requiere credenciales GitHub
+
+**Próximas micro-misiones:**
+1. 🥇 Sonner CSS-in-JS Optimization / Replace with radix toast
+2. 🥈 CSP Headers + Security Headers Audit
+3. 🥉 Radix UI Unused Components Audit
 
 ---
 
