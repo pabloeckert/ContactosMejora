@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { DedupIndex, checkDuplicate } from "@/lib/dedup";
+import { DedupIndex } from "@/lib/dedup";
 
 describe("DedupIndex", () => {
   it("should detect exact email duplicates", () => {
@@ -87,24 +87,20 @@ describe("DedupIndex", () => {
     // Phones with < 7 digits are not indexed, so no phone duplicate
     expect(result.isDuplicate).toBe(false);
   });
-});
 
-describe("checkDuplicate (legacy)", () => {
-  it("should detect email match", () => {
-    const existing = [{ id: "1", firstName: "A", lastName: "B", email: "test@test.com", whatsapp: "" }];
-    const result = checkDuplicate({ firstName: "X", lastName: "Y", email: "test@test.com", whatsapp: "" }, existing);
+  it("should detect duplicate via email even if names differ", () => {
+    const index = new DedupIndex();
+    index.add({ id: "1", firstName: "Juan", lastName: "García", email: "shared@company.com", whatsapp: "" });
+    const result = index.add({ id: "2", firstName: "Pedro", lastName: "Martínez", email: "shared@company.com", whatsapp: "" });
     expect(result.isDuplicate).toBe(true);
     expect(result.confidence).toBe(100);
   });
 
-  it("should detect phone match", () => {
-    const existing = [{ id: "1", firstName: "A", lastName: "B", email: "", whatsapp: "+5491155551234" }];
-    const result = checkDuplicate({ firstName: "X", lastName: "Y", email: "", whatsapp: "+5491155551234" }, existing);
+  it("should detect duplicate via phone even if names and emails differ", () => {
+    const index = new DedupIndex();
+    index.add({ id: "1", firstName: "Juan", lastName: "García", email: "juan@test.com", whatsapp: "+5491155551234" });
+    const result = index.add({ id: "2", firstName: "Pedro", lastName: "Martínez", email: "pedro@test.com", whatsapp: "+5491155551234" });
     expect(result.isDuplicate).toBe(true);
-  });
-
-  it("should return false for empty existing", () => {
-    const result = checkDuplicate({ firstName: "A", lastName: "B", email: "a@b.com", whatsapp: "" }, []);
-    expect(result.isDuplicate).toBe(false);
+    expect(result.confidence).toBe(95);
   });
 });

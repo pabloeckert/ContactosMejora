@@ -3,17 +3,11 @@
  * Falls back to inline processing for small datasets.
  */
 
+import { type CleanResult } from "@/lib/rule-cleaner";
+
 const WORKER_THRESHOLD = 10000; // Use worker for 10K+ contacts
 
-interface RuleCleanResult {
-  firstName: string;
-  lastName: string;
-  email: string;
-  whatsapp: string;
-  company: string;
-  jobTitle: string;
-  needsAI: boolean;
-}
+type RuleCleanResult = CleanResult;
 
 interface DedupResult {
   id: string;
@@ -38,7 +32,7 @@ export function runRuleCleanInWorker(
     // Import inline for small datasets
     return import("@/lib/rule-cleaner").then(({ batchRuleClean }) => {
       const result = batchRuleClean(contacts as Record<string, string>[]);
-      return { cleaned: result.cleaned as unknown as RuleCleanResult[], aiIndices: result.aiIndices };
+      return { cleaned: result.cleaned as RuleCleanResult[], aiIndices: result.aiIndices };
     });
   }
 
@@ -48,7 +42,7 @@ export function runRuleCleanInWorker(
       // Fallback to inline
       import("@/lib/rule-cleaner").then(({ batchRuleClean }) => {
         const result = batchRuleClean(contacts as Record<string, string>[]);
-        resolve({ cleaned: result.cleaned as unknown as RuleCleanResult[], aiIndices: result.aiIndices });
+        resolve({ cleaned: result.cleaned as RuleCleanResult[], aiIndices: result.aiIndices });
       });
       return;
     }
@@ -60,6 +54,10 @@ export function runRuleCleanInWorker(
       if (e.data.type === "ruleClean:done") {
         worker.terminate();
         resolve({ cleaned: e.data.cleaned, aiIndices: e.data.aiIndices });
+      }
+      if (e.data.type === "error") {
+        worker.terminate();
+        reject(new Error(`Worker error: ${e.data.error}`));
       }
     };
 
@@ -104,6 +102,10 @@ export function runDedupInWorker(
       if (e.data.type === "dedup:done") {
         worker.terminate();
         resolve(e.data.results);
+      }
+      if (e.data.type === "error") {
+        worker.terminate();
+        reject(new Error(`Worker error: ${e.data.error}`));
       }
     };
 

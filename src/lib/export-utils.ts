@@ -31,6 +31,24 @@ function contactToRow(c: UnifiedContact): ContactRow {
   };
 }
 
+/** Escapa un valor para CSV (comillas dobles si contiene coma, comilla o salto de línea) */
+function csvEscape(val: string): string {
+  const v = String(val || "");
+  return v.includes(",") || v.includes('"') || v.includes("\n")
+    ? `"${v.replace(/"/g, '""')}"`
+    : v;
+}
+
+/** Genera CSV genérico a partir de headers y filas de strings */
+function buildCSV(headers: string[], rows: string[][]): string {
+  return [
+    headers.join(","),
+    ...rows.map(row => row.map(csvEscape).join(",")),
+  ].join("\n");
+}
+
+// ── Core exports ──────────────────────────────────────────
+
 export function exportCSV(contacts: UnifiedContact[]): string {
   const rows = contacts.map(contactToRow);
   const headers = Object.keys(rows[0] || {});
@@ -228,169 +246,72 @@ export function downloadFile(content: string | Uint8Array, filename: string, mim
   URL.revokeObjectURL(url);
 }
 
-// ── CRM Export Formats ──────────────────────────────────────
+// ── CRM Export Factory ──────────────────────────────────────
 
-/**
- * Exporta contactos en formato Google Contacts CSV (re-importable).
- * Compatible con la importación masiva de Google Contacts.
- */
+interface CRMColumnDef {
+  header: string;
+  getValue: (c: UnifiedContact) => string;
+}
+
+function buildCRMCSV(columns: CRMColumnDef[], contacts: UnifiedContact[]): string {
+  const headers = columns.map(col => col.header);
+  const rows = contacts.map(c => columns.map(col => col.getValue(c)));
+  return buildCSV(headers, rows);
+}
+
+/** Columnas estándar de CRM: First Name, Last Name, Email, Phone, Company, Title */
+const STANDARD_CRM_COLUMNS: CRMColumnDef[] = [
+  { header: "First Name", getValue: c => c.firstName },
+  { header: "Last Name", getValue: c => c.lastName },
+  { header: "Email", getValue: c => c.email },
+  { header: "Phone", getValue: c => c.whatsapp },
+  { header: "Company", getValue: c => c.company },
+  { header: "Title", getValue: c => c.jobTitle },
+];
+
 export function exportGoogleContactsCSV(contacts: UnifiedContact[]): string {
-  // Google Contacts import format headers
-  const headers = [
-    "Name", "Given Name", "Family Name", "E-mail 1 - Value",
-    "Phone 1 - Type", "Phone 1 - Value",
-    "Organization 1 - Name", "Organization 1 - Title",
+  const columns: CRMColumnDef[] = [
+    { header: "Name", getValue: c => `${c.firstName} ${c.lastName}`.trim() },
+    { header: "Given Name", getValue: c => c.firstName },
+    { header: "Family Name", getValue: c => c.lastName },
+    { header: "E-mail 1 - Value", getValue: c => c.email },
+    { header: "Phone 1 - Type", getValue: c => c.whatsapp ? "Mobile" : "" },
+    { header: "Phone 1 - Value", getValue: c => c.whatsapp },
+    { header: "Organization 1 - Name", getValue: c => c.company },
+    { header: "Organization 1 - Title", getValue: c => c.jobTitle },
   ];
-
-  const rows = contacts.map(c => {
-    const name = `${c.firstName} ${c.lastName}`.trim();
-    return [
-      name,
-      c.firstName,
-      c.lastName,
-      c.email,
-      c.whatsapp ? "Mobile" : "",
-      c.whatsapp,
-      c.company,
-      c.jobTitle,
-    ];
-  });
-
-  return [
-    headers.join(","),
-    ...rows.map(row =>
-      row.map(val => {
-        const v = String(val || "");
-        return v.includes(",") || v.includes('"') || v.includes("\n")
-          ? `"${v.replace(/"/g, '""')}"`
-          : v;
-      }).join(",")
-    ),
-  ].join("\n");
+  return buildCRMCSV(columns, contacts);
 }
 
-/**
- * Exporta contactos en formato HubSpot CSV.
- * Columnas esperadas por el importador de HubSpot.
- */
 export function exportHubSpotCSV(contacts: UnifiedContact[]): string {
-  const headers = [
-    "First Name", "Last Name", "Email", "Phone Number",
-    "Company", "Job Title",
+  const columns: CRMColumnDef[] = [
+    { header: "First Name", getValue: c => c.firstName },
+    { header: "Last Name", getValue: c => c.lastName },
+    { header: "Email", getValue: c => c.email },
+    { header: "Phone Number", getValue: c => c.whatsapp },
+    { header: "Company", getValue: c => c.company },
+    { header: "Job Title", getValue: c => c.jobTitle },
   ];
-
-  const rows = contacts.map(c => [
-    c.firstName,
-    c.lastName,
-    c.email,
-    c.whatsapp,
-    c.company,
-    c.jobTitle,
-  ]);
-
-  return [
-    headers.join(","),
-    ...rows.map(row =>
-      row.map(val => {
-        const v = String(val || "");
-        return v.includes(",") || v.includes('"') || v.includes("\n")
-          ? `"${v.replace(/"/g, '""')}"`
-          : v;
-      }).join(",")
-    ),
-  ].join("\n");
+  return buildCRMCSV(columns, contacts);
 }
 
-/**
- * Exporta contactos en formato Salesforce CSV.
- * Compatible con el Data Import Wizard de Salesforce.
- */
 export function exportSalesforceCSV(contacts: UnifiedContact[]): string {
-  const headers = [
-    "First Name", "Last Name", "Email", "Phone",
-    "Company", "Title",
-  ];
-
-  const rows = contacts.map(c => [
-    c.firstName,
-    c.lastName,
-    c.email,
-    c.whatsapp,
-    c.company,
-    c.jobTitle,
-  ]);
-
-  return [
-    headers.join(","),
-    ...rows.map(row =>
-      row.map(val => {
-        const v = String(val || "");
-        return v.includes(",") || v.includes('"') || v.includes("\n")
-          ? `"${v.replace(/"/g, '""')}"`
-          : v;
-      }).join(",")
-    ),
-  ].join("\n");
+  return buildCRMCSV(STANDARD_CRM_COLUMNS, contacts);
 }
 
-/**
- * Exporta contactos en formato Zoho CRM CSV.
- */
 export function exportZohoCSV(contacts: UnifiedContact[]): string {
-  const headers = [
-    "First Name", "Last Name", "Email", "Phone",
-    "Company", "Title",
-  ];
-
-  const rows = contacts.map(c => [
-    c.firstName,
-    c.lastName,
-    c.email,
-    c.whatsapp,
-    c.company,
-    c.jobTitle,
-  ]);
-
-  return [
-    headers.join(","),
-    ...rows.map(row =>
-      row.map(val => {
-        const v = String(val || "");
-        return v.includes(",") || v.includes('"') || v.includes("\n")
-          ? `"${v.replace(/"/g, '""')}"`
-          : v;
-      }).join(",")
-    ),
-  ].join("\n");
+  return buildCRMCSV(STANDARD_CRM_COLUMNS, contacts);
 }
 
-/**
- * Exporta contactos en formato Airtable CSV.
- */
 export function exportAirtableCSV(contacts: UnifiedContact[]): string {
-  const headers = [
-    "Name", "Email", "Phone", "Company", "Job Title",
+  const columns: CRMColumnDef[] = [
+    { header: "Name", getValue: c => `${c.firstName} ${c.lastName}`.trim() },
+    { header: "Email", getValue: c => c.email },
+    { header: "Phone", getValue: c => c.whatsapp },
+    { header: "Company", getValue: c => c.company },
+    { header: "Job Title", getValue: c => c.jobTitle },
   ];
-
-  const rows = contacts.map(c => [
-    `${c.firstName} ${c.lastName}`.trim(),
-    c.email,
-    c.whatsapp,
-    c.company,
-    c.jobTitle,
-  ]);
-
-  return [
-    headers.join(","),
-    ...rows.map(row =>
-      row.map(val => {
-        const v = String(val || "");
-        return v.includes(",") || v.includes('"') || v.includes("\n")
-          ? `"${v.replace(/"/g, '""')}"`
-          : v;
-      }).join(",")
-    ),
-  ].join("\n");
+  return buildCRMCSV(columns, contacts);
 }
 
 /**

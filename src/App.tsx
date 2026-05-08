@@ -6,6 +6,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { PageSkeleton } from "@/components/ui/skeleton";
 import Index from "./pages/Index.tsx";
 
 // Lazy load secondary routes
@@ -29,7 +30,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter basename={routerBasename}>
-            <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>}>
+            <Suspense fallback={<PageSkeleton />}>
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/landing" element={<Landing />} />

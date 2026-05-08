@@ -27,6 +27,7 @@ export function useDedup(options: UseDedupOptions) {
     const result: UnifiedContact[] = [];
 
     const dedupResults = await runDedupInWorker(
+      // Worker only reads string fields; cast is safe because worker ignores non-string properties
       contacts as unknown as Record<string, string>[],
       (processed, total) => {
         if (processed % 10000 === 0) addLog("info", `🔍 Dedup: ${processed.toLocaleString()}/${total.toLocaleString()}`);

@@ -189,64 +189,71 @@ interface WorkerRequest {
 self.onmessage = (e: MessageEvent<WorkerRequest>) => {
   const { type, contacts } = e.data;
 
-  if (type === "ruleClean") {
-    const cleaned: CleanResult[] = [];
-    const aiIndices: number[] = [];
-    const BATCH_SIZE = 5000;
+  try {
+    if (type === "ruleClean") {
+      const cleaned: CleanResult[] = [];
+      const aiIndices: number[] = [];
+      const BATCH_SIZE = 5000;
 
-    for (let i = 0; i < contacts.length; i++) {
-      const result = ruleClean(contacts[i]);
-      cleaned.push(result);
-      if (result.needsAI) aiIndices.push(i);
+      for (let i = 0; i < contacts.length; i++) {
+        const result = ruleClean(contacts[i]);
+        cleaned.push(result);
+        if (result.needsAI) aiIndices.push(i);
 
-      // Progress update every BATCH_SIZE items
-      if (i % BATCH_SIZE === 0 && i > 0) {
-        (self as unknown as Worker).postMessage({
-          type: "progress",
-          processed: i,
-          total: contacts.length,
-        });
+        // Progress update every BATCH_SIZE items
+        if (i % BATCH_SIZE === 0 && i > 0) {
+          (self as unknown as Worker).postMessage({
+            type: "progress",
+            processed: i,
+            total: contacts.length,
+          });
+        }
       }
+
+      (self as unknown as Worker).postMessage({
+        type: "ruleClean:done",
+        cleaned,
+        aiIndices,
+      });
     }
 
-    (self as unknown as Worker).postMessage({
-      type: "ruleClean:done",
-      cleaned,
-      aiIndices,
-    });
-  }
+    if (type === "dedup") {
+      const dedupIndex = new DedupIndex();
+      const results: Array<{ id: string; isDuplicate: boolean; duplicateOf?: string; confidence: number }> = [];
+      const BATCH_SIZE = 5000;
 
-  if (type === "dedup") {
-    const dedupIndex = new DedupIndex();
-    const results: Array<{ id: string; isDuplicate: boolean; duplicateOf?: string; confidence: number }> = [];
-    const BATCH_SIZE = 5000;
-
-    for (let i = 0; i < contacts.length; i++) {
-      const c = contacts[i];
-      const dedupResult = dedupIndex.add({
-        id: c.id || String(i),
-        firstName: c.firstName || "",
-        lastName: c.lastName || "",
-        email: c.email || "",
-        whatsapp: c.whatsapp || "",
-      });
-      results.push({
-        id: c.id || String(i),
-        ...dedupResult,
-      });
-
-      if (i % BATCH_SIZE === 0 && i > 0) {
-        (self as unknown as Worker).postMessage({
-          type: "progress",
-          processed: i,
-          total: contacts.length,
+      for (let i = 0; i < contacts.length; i++) {
+        const c = contacts[i];
+        const dedupResult = dedupIndex.add({
+          id: c.id || String(i),
+          firstName: c.firstName || "",
+          lastName: c.lastName || "",
+          email: c.email || "",
+          whatsapp: c.whatsapp || "",
         });
-      }
-    }
+        results.push({
+          id: c.id || String(i),
+          ...dedupResult,
+        });
 
+        if (i % BATCH_SIZE === 0 && i > 0) {
+          (self as unknown as Worker).postMessage({
+            type: "progress",
+            processed: i,
+            total: contacts.length,
+          });
+        }
+      }
+
+      (self as unknown as Worker).postMessage({
+        type: "dedup:done",
+        results,
+      });
+    }
+  } catch (err) {
     (self as unknown as Worker).postMessage({
-      type: "dedup:done",
-      results,
+      type: "error",
+      error: err instanceof Error ? err.message : String(err),
     });
   }
 };
