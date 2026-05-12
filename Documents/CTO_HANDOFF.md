@@ -1,9 +1,10 @@
 # 🤝 CTO Handoff — Session Summary
 
 > **Fecha:** 2026-05-13
-> **Sesiones:** 4 (misma fecha)
+> **Sesiones:** 6 (misma fecha)
 > **Hosting:** GitHub Pages (permanente)
 > **Producción:** https://pabloeckert.github.io/MejoraContactos/
+> **Próxima lectura:** `Documents/SESSION_RESUME.md` → decir "continuemos"
 
 ---
 
@@ -144,21 +145,32 @@ M  src/lib/analytics.ts
 - coverage/ añadido a .gitignore
 - Sentry ya estaba lazy-loaded (no action needed)
 
+### Sesión 6: Doc Sync + Production Prep ✅
+- package.json actualizado a v12.9.0
+- Documentación sincronizada: PROMPT, MASTERPLAN, PLAN_GENERAL
+- SESSION_RESUME.md creado (punto de reanudación)
+- Scripts preparados: cleanup-branches.sh, deploy-edge-functions.sh
+- Branches evaluadas: staging (eliminar), 5 dependabot (cerrar PRs)
+
 ---
 
 ## Próximos Pasos Recomendados
 
-### Próxima sesión
-1. **useReducer para useContactProcessing** — Refactor del hook principal
-2. **E2E tests Google Contacts** — Flujo OAuth completo
-3. **CHANGELOG automation** — conventional-commits
-4. **Custom domain** — Configurar dominio propio si se necesita
+### 🔴 Crítico (Fase 3 — Producción)
+1. **Migraciones SQL** — Ejecutar en Supabase Dashboard (ver SESSION_RESUME.md §3.1)
+2. **Deploy Edge Functions** — `scripts/deploy-edge-functions.sh`
+3. **Eliminar branches remote** — `scripts/cleanup-branches.sh`
 
-### Futuro
-5. **Product Hunt launch** — Preparar launch materials
-6. **Comunidad** — Twitter/X presencia
-7. **Custom domain** — Configurar dominio propio si se necesita
+### 🟡 Importante (Fase 4 — Refactor)
+4. **useReducer para useContactProcessing** — Refactor del hook principal
+5. **E2E tests Google Contacts** — Flujo OAuth completo
+6. **Sentry DSN** — Crear proyecto en sentry.io
+
+### 🟢 Futuro
+7. **CHANGELOG automation** — conventional-commits
+8. **Custom domain** — Configurar dominio propio si se necesita
+9. **Product Hunt launch** — Preparar launch materials
 
 ---
 
-*CTO Agent — 2026-05-13 — 4 sesiones, 7 commits, migración completa a GitHub Pages*
+*CTO Agent — 2026-05-13 — 6 sesiones, doc sync completa, producción preparada*

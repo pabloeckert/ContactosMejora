@@ -4,6 +4,22 @@ All notable changes to MejoraContactos will be documented in this file.
 
 Format: [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/)
 
+## [12.9.5] - 2026-05-13 — CTO Session 6: Doc Sync + Production Prep
+
+### Changed
+- **package.json:** Version 12.8.0 → 12.9.0
+- **PROMPT.md:** Reescrito con estado actual (v12.9, 326 tests, GitHub Pages)
+- **MASTERPLAN.md:** Test count 253→326, bundle 305→298KB, sessions 11-15 added
+- **PLAN_GENERAL.md:** Version, tests, sessions sincronizados
+- **CTO_HANDOFF.md:** Session 6 agregada, próximos pasos priorizados
+
+### Added
+- **SESSION_RESUME.md:** Punto de reanudación para próxima sesión
+- **scripts/cleanup-branches.sh:** Script para eliminar branches remote obsoletas
+- **scripts/deploy-edge-functions.sh:** Script para deploy de Edge Functions
+
+---
+
 ## [12.9.4] - 2026-05-13 — CTO Session 4: GitHub Pages Migration
 
 ### Added
