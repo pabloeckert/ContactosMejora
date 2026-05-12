@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { ParsedFile } from "@/types/contact";
 
@@ -86,7 +86,7 @@ export function GoogleContactsPanel({ onContactsImported }: GoogleContactsPanelP
     if (!account) return;
     setIsLoading(accountId);
     try {
-      const { data, error } = await supabase.functions.invoke("google-contacts-auth", {
+      const { data, error } = await (await getSupabase()).functions.invoke("google-contacts-auth", {
         body: { action: "fetch_contacts", code: account.accessToken, redirectUri: REDIRECT_URI },
       });
       if (error) throw new Error(error.message);
@@ -120,7 +120,7 @@ export function GoogleContactsPanel({ onContactsImported }: GoogleContactsPanelP
   const handleOAuthCallback = useCallback(async (code: string, accountIndex?: number) => {
     setIsLoading('new');
     try {
-      const { data, error } = await supabase.functions.invoke("google-contacts-auth", {
+      const { data, error } = await (await getSupabase()).functions.invoke("google-contacts-auth", {
         body: { action: "exchange", code, redirectUri: REDIRECT_URI },
       });
       if (error) throw new Error(error.message);
@@ -173,7 +173,7 @@ export function GoogleContactsPanel({ onContactsImported }: GoogleContactsPanelP
     }
     setIsLoading('new');
     try {
-      const { data, error } = await supabase.functions.invoke("google-contacts-auth", {
+      const { data, error } = await (await getSupabase()).functions.invoke("google-contacts-auth", {
         body: { action: "auth_url", redirectUri: REDIRECT_URI, state: accounts.length.toString() },
       });
       if (error) throw new Error(error.message);
@@ -288,7 +288,7 @@ export function GoogleContactsPanel({ onContactsImported }: GoogleContactsPanelP
       const allErrors: string[] = [];
 
       for (const account of targetAccounts) {
-        const { data, error } = await supabase.functions.invoke("google-contacts-auth", {
+        const { data, error } = await (await getSupabase()).functions.invoke("google-contacts-auth", {
           body: { action: "delete_contacts", code: account.accessToken, redirectUri: REDIRECT_URI },
         });
 

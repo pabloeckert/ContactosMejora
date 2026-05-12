@@ -6,7 +6,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { validateBatchWithAI, clearValidationCache } from "@/lib/ai-validator";
 import { validateContactFields } from "@/lib/field-validator";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { getActiveKeysMulti } from "@/lib/api-keys";
 import type { CountryCode } from "libphonenumber-js";
 import type { UnifiedContact, ProcessingLog } from "@/types/contact";
@@ -96,7 +96,7 @@ export function useAIPipeline(options: UseAIPipelineOptions) {
           body.pipelineStages = stageConfig;
         }
 
-        const { data, error } = await supabase.functions.invoke("clean-contacts", { body });
+        const { data, error } = await (await getSupabase()).functions.invoke("clean-contacts", { body });
 
         if (error || data?.error) {
           const errMsg = error?.message || data?.error;

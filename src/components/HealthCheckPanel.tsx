@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { getActiveKeysMulti } from "@/lib/api-keys";
 import { PROVIDERS } from "@/lib/providers";
 import {
@@ -60,7 +60,7 @@ export function HealthCheckPanel() {
 
       const start = Date.now();
       try {
-        const { data, error } = await supabase.functions.invoke("clean-contacts", {
+        const { data, error } = await (await getSupabase()).functions.invoke("clean-contacts", {
           body: {
             contacts: [TEST_CONTACT],
             provider: provider.id,

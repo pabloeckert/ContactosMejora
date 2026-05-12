@@ -3,7 +3,7 @@
  * no pudieron resolver. Usa el prompt mínimo para ahorrar tokens.
  */
 
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { getActiveKeysMulti } from "@/lib/api-keys";
 import { handleError } from "./error-handler";
 import { validateContactFields } from "./field-validator";
@@ -107,7 +107,7 @@ export async function validateContactWithAI(
 
     // Enviamos el contacto real a la Edge Function para que lo limpie.
     // La IA corregirá los campos inválidos, y comparamos antes/después.
-    const { data, error } = await supabase.functions.invoke("clean-contacts", {
+    const { data, error } = await (await getSupabase()).functions.invoke("clean-contacts", {
       body: {
         contacts: [{
           firstName: contact.firstName,

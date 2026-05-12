@@ -4,6 +4,19 @@ All notable changes to MejoraContactos will be documented in this file.
 
 Format: [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/)
 
+## [12.9.2] - 2026-05-13 — CTO Session 2: Performance & Testing
+
+### Changed
+- **Supabase client lazy init:** `supabase` export → `getSupabase()` async function. El cliente se inicializa solo cuando se llama, no en el carga inicial
+- **Toaster unificado:** Eliminado radix Toaster (código muerto). Solo se usa Sonner
+
+### Added
+- **17 tests para Google Contacts Edge Function:** Action routing, auth URL, response format, contact parsing, delete batch logic
+- **Staging environment:** GitHub Actions workflow para deploy a staging (`staging` branch → `/mejoracontactos-staging/`)
+- **CHANGELOG.md** actualizado
+
+---
+
 ## [12.9.1] - 2026-05-13 — CTO Audit & Fixes
 
 ### Fixed

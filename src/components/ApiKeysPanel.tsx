@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Key, TestTube, CheckCircle2, XCircle, Loader2, ExternalLink, Trash2, Eye, EyeOff,
@@ -83,7 +83,7 @@ export function ApiKeysPanel() {
 
     setTesting(keyId);
     try {
-      const { data, error } = await supabase.functions.invoke("clean-contacts", {
+      const { data, error } = await (await getSupabase()).functions.invoke("clean-contacts", {
         body: {
           contacts: [{ firstName: "Test", lastName: "User", email: "test@test.com" }],
           provider: provider.id,

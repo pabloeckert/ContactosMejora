@@ -108,8 +108,8 @@ async function sendToWebhook(report: ErrorReport) {
 
 async function sendToSupabase(report: ErrorReport) {
   try {
-    const { supabase } = await import("@/integrations/supabase/client");
-    await supabase.functions.invoke("log-error", { body: report });
+    const { getSupabase } = await import("@/integrations/supabase/client");
+    await (await getSupabase()).functions.invoke("log-error", { body: report });
   } catch {
     // Edge Function not deployed yet — ignore
   }
