@@ -158,3 +158,77 @@ describe("parseFile", () => {
     await expect(parseFile(makeFile("data", "data.xml"))).rejects.toThrow("Formato no soportado: .xml");
   });
 });
+
+describe("parseCSV — extended coverage", () => {
+  it("should handle CSV with BOM", async () => {
+    const bom = "\uFEFF";
+    const csv = "Nombre,Email\nJuan,juan@test.com";
+    const result = await parseCSV(makeFile(bom + csv, "bom.csv"));
+    expect(result.columns).toEqual(["Nombre", "Email"]);
+    expect(result.rows).toHaveLength(1);
+  });
+
+  it("should handle CSV with quoted fields containing commas", async () => {
+    const csv = 'Name,Note\nJuan,"Buenos Aires, Argentina"';
+    const result = await parseCSV(makeFile(csv, "quoted.csv"));
+    expect(result.rows[0]["Note"]).toBe("Buenos Aires, Argentina");
+  });
+
+  it("should handle CSV with different delimiters", async () => {
+    const csv = "Name;Email\nJuan;juan@test.com";
+    const result = await parseCSV(makeFile(csv, "semicolon.csv"));
+    // PapaParse auto-detects delimiter
+    expect(result.rows).toHaveLength(1);
+  });
+});
+
+describe("parseVCF — extended coverage", () => {
+  it("should handle vCard without N field (use FN)", async () => {
+    const vcf = `BEGIN:VCARD
+VERSION:3.0
+FN:Juan García
+EMAIL:juan@test.com
+END:VCARD`;
+    const result = await parseVCF(makeFile(vcf, "nofield.vcf"));
+    expect(result.rows).toHaveLength(1);
+  });
+
+  it("should handle vCard with NOTE field", async () => {
+    const vcf = `BEGIN:VCARD
+VERSION:3.0
+N:A;B;;;
+NOTE:This is a note
+END:VCARD`;
+    const result = await parseVCF(makeFile(vcf, "note.vcf"));
+    expect(result.rows).toHaveLength(1);
+  });
+
+  it("should handle empty vCard file", async () => {
+    const vcf = "";
+    const result = await parseVCF(makeFile(vcf, "empty.vcf"));
+    expect(result.rows).toHaveLength(0);
+    expect(result.columns).toHaveLength(0);
+  });
+});
+
+describe("parseJSON — extended coverage", () => {
+  it("should handle empty JSON array", async () => {
+    const json = "[]";
+    const result = await parseJSON(makeFile(json, "empty.json"));
+    expect(result.rows).toHaveLength(0);
+  });
+
+  it("should handle nested object values by stringifying", async () => {
+    const json = JSON.stringify([{ name: "Juan", meta: { age: 30, city: "BA" } }]);
+    const result = await parseJSON(makeFile(json, "nested.json"));
+    expect(typeof result.rows[0]["meta"]).toBe("string");
+    const parsed = JSON.parse(result.rows[0]["meta"]);
+    expect(parsed.age).toBe(30);
+  });
+
+  it("should handle array values by stringifying", async () => {
+    const json = JSON.stringify([{ name: "Juan", tags: ["dev", "admin"] }]);
+    const result = await parseJSON(makeFile(json, "array.json"));
+    expect(typeof result.rows[0]["tags"]).toBe("string");
+  });
+});

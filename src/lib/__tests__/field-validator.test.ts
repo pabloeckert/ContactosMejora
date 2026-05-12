@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { validateContactFields, getScoreColor, getFieldIcon } from "@/lib/field-validator";
+import { validateContactFields, validateContactBatch, getScoreColor, getFieldIcon } from "@/lib/field-validator";
 import type { UnifiedContact } from "@/types/contact";
 
 function makeContact(overrides: Partial<UnifiedContact> = {}): UnifiedContact {
@@ -152,5 +152,124 @@ describe("getFieldIcon", () => {
 
   it("should return ⚠️ for valid but low score", () => {
     expect(getFieldIcon({ field: "firstName", isValid: true, score: 60 })).toBe("⚠️");
+  });
+});
+
+describe("validateContactFields — extended coverage", () => {
+  it("should reject too long firstName (>50 chars)", () => {
+    const result = validateContactFields(makeContact({ firstName: "A".repeat(51) }));
+    const val = result.validations.find(v => v.field === "firstName");
+    expect(val?.isValid).toBe(false);
+    expect(val?.score).toBe(20);
+  });
+
+  it("should reject short acronym without vowels", () => {
+    const result = validateContactFields(makeContact({ firstName: "DR" }));
+    const val = result.validations.find(v => v.field === "firstName");
+    expect(val?.isValid).toBe(false);
+    expect(val?.score).toBe(5);
+  });
+
+  it("should suggest split for full name in firstName", () => {
+    const result = validateContactFields(makeContact({ firstName: "Juan García", lastName: "" }));
+    const val = result.validations.find(v => v.field === "firstName");
+    expect(val?.isValid).toBe(true);
+    expect(val?.score).toBe(70);
+    expect(val?.correctedValue).toBe("Juan");
+  });
+
+  it("should handle empty firstName with full name in lastName context", () => {
+    const result = validateContactFields(makeContact({ firstName: "Juan García", lastName: "" }));
+    const lastNameVal = result.validations.find(v => v.field === "lastName");
+    expect(lastNameVal?.score).toBe(30);
+  });
+
+  it("should reject company that looks like person name", () => {
+    const result = validateContactFields(makeContact({ company: "Juan García" }));
+    const val = result.validations.find(v => v.field === "company");
+    expect(val?.score).toBe(40);
+  });
+
+  it("should reject title word in company field", () => {
+    const result = validateContactFields(makeContact({ company: "CEO" }));
+    const val = result.validations.find(v => v.field === "company");
+    expect(val?.isValid).toBe(false);
+    expect(val?.score).toBe(10);
+  });
+
+  it("should reject vague job title", () => {
+    const result = validateContactFields(makeContact({ jobTitle: "empleado" }));
+    const val = result.validations.find(v => v.field === "jobTitle");
+    expect(val?.isValid).toBe(false);
+    expect(val?.score).toBe(15);
+  });
+
+  it("should detect phone in jobTitle field", () => {
+    const result = validateContactFields(makeContact({ jobTitle: "+5491155551234" }));
+    const val = result.validations.find(v => v.field === "jobTitle");
+    expect(val?.isValid).toBe(false);
+    expect(val?.score).toBe(5);
+  });
+
+  it("should handle empty whatsapp", () => {
+    const result = validateContactFields(makeContact({ whatsapp: "" }));
+    const val = result.validations.find(v => v.field === "whatsapp");
+    expect(val?.isValid).toBe(true);
+    expect(val?.score).toBe(50);
+  });
+
+  it("should handle role email prefix", () => {
+    const result = validateContactFields(makeContact({ email: "info@company.com" }));
+    const val = result.validations.find(v => v.field === "email");
+    expect(val?.isValid).toBe(true);
+    expect(val?.score).toBe(60);
+  });
+
+  it("should reject domain without dot in email", () => {
+    const result = validateContactFields(makeContact({ email: "test@gmailcom" }));
+    const val = result.validations.find(v => v.field === "email");
+    expect(val?.isValid).toBe(false);
+    // Fails basic regex (no dot after @), so score is 0
+    expect(val?.score).toBe(0);
+  });
+
+  it("should reject email in lastName field", () => {
+    const result = validateContactFields(makeContact({ lastName: "test@email.com" }));
+    const val = result.validations.find(v => v.field === "lastName");
+    expect(val?.isValid).toBe(false);
+    expect(val?.score).toBe(0);
+  });
+
+  it("should reject junk lastName", () => {
+    const result = validateContactFields(makeContact({ lastName: "n/a" }));
+    const val = result.validations.find(v => v.field === "lastName");
+    expect(val?.isValid).toBe(false);
+    expect(val?.score).toBe(0);
+  });
+
+  it("should validate compound lastName", () => {
+    const result = validateContactFields(makeContact({ lastName: "García-López" }));
+    const val = result.validations.find(v => v.field === "lastName");
+    expect(val?.isValid).toBe(true);
+    expect(val?.score).toBe(95);
+  });
+});
+
+describe("validateContactBatch", () => {
+  it("should validate multiple contacts", () => {
+    const contacts = [
+      makeContact({ id: "1", firstName: "Juan" }),
+      makeContact({ id: "2", firstName: "Ana" }),
+      makeContact({ id: "3", firstName: "" }),
+    ];
+    const results = validateContactBatch(contacts);
+    expect(results).toHaveLength(3);
+    expect(results[0].contactId).toBe("1");
+    expect(results[1].contactId).toBe("2");
+    expect(results[2].contactId).toBe("3");
+  });
+
+  it("should handle empty array", () => {
+    expect(validateContactBatch([])).toHaveLength(0);
   });
 });
