@@ -3,7 +3,7 @@
  * Stores events in localStorage. Integrates with Plausible when configured.
  *
  * To enable Plausible:
- * 1. Set VITE_PLAUSIBLE_DOMAIN env var (e.g. "util.mejoraok.com")
+ * 1. Set VITE_PLAUSIBLE_DOMAIN env var (e.g. "pabloeckert.github.io")
  * 2. Optionally set VITE_PLAUSIBLE_URL if self-hosted (default: https://plausible.io)
  *
  * Plausible is GDPR-compliant, no cookies, no personal data.

@@ -31,7 +31,7 @@
 - Considerar reemplazar con toast nativo de radix-ui
 
 ### 🥈 Opción 2: CSP Headers + Security Headers Audit
-- Auditar CSP headers en Hostinger/.htaccess
+- CSP no disponible en GitHub Pages — considerar Cloudflare si se necesita
 - Agregar HSTS
 
 ### 🥉 Opción 3: Radix UI Unused Components Audit

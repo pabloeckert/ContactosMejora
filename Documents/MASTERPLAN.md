@@ -385,7 +385,6 @@ push to main
   ├── npx playwright install --with-deps chromium
   ├── npx playwright test (21 E2E tests)
   ├── npm run build (production base path)
-  ├── SSH: backup current deployment
   ├── SCP: upload dist/
   ├── HTTP 200 smoke test
   └── On failure: auto-rollback from backup
@@ -441,7 +440,7 @@ push to main
 | 2 | Deploy Edge Functions | 🟡 Alta | `npx supabase functions deploy google-contacts-auth` (nueva versión con delete) |
 | 3 | Re-conectar Google | 🟡 Alta | Cuentas existentes necesitan re-autenticarse para obtener scope de escritura |
 | 4 | Sentry DSN | 🟢 Media | Crear proyecto en sentry.io, configurar `VITE_SENTRY_DSN` |
-| 5 | Cloudflare CDN | 🟢 Media | Cambiar nameservers en Hostinger |
+| 5 | Cloudflare CDN | 🟢 Media | No relevante — GitHub Pages tiene CDN propio |
 | 6 | Activar 3er proveedor IA | 🟢 Media | Activar key Gemini/OpenRouter para más redundancia |
 
 ### 🟢 Mejoras sugeridas (no bloqueantes)
