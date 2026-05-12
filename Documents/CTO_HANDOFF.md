@@ -1,12 +1,12 @@
 # 🤝 CTO Handoff — Session Summary
 
 > **Fecha:** 2026-05-13
-> **Sesión:** 2 de 2 (misma fecha)
-> **Commits:** `f20e665` (sesión 1) + `pending` (sesión 2)
+> **Sesiones:** 3 (misma fecha)
+> **Commits:** `f20e665` + `d894eb8` + `pending` (sesión 3)
 
 ---
 
-## Resumen Ejecutivo Ambas Sesiones
+## Resumen Ejecutivo 3 Sesiones
 
 ### Sesión 1: Auditoría & Fixes ✅
 - Auditoría completa del código fuente (~50 archivos)
@@ -14,54 +14,34 @@
 - Documentación: CTO_AUDIT.md, CHANGELOG.md
 
 ### Sesión 2: Performance & Testing ✅
-| Mejora | Impacto | Detalle |
-|--------|---------|---------|
-| Supabase lazy init | ALTO | `supabase` → `getSupabase()`. Cliente se inicializa solo cuando se necesita |
-| Toaster unificado | MEDIO | Eliminado radix Toaster muerto. Solo Sonner |
-| Tests Edge Functions | ALTO | 17 nuevos tests para Google Contacts Edge Function |
-| Staging environment | MEDIO | Workflow GitHub Actions para deploy a staging |
+- Supabase lazy init (getSupabase). Index: 312KB → 298KB
+- Toaster unificado (eliminado radix Toaster muerto)
+- 17 tests Google Contacts Edge Function
+- Staging environment (GitHub Actions workflow)
+
+### Sesión 3: Testing & Documentation ✅
+- 31 tests clean-contacts Edge Function (301 total)
+- CONTRIBUTING.md reescrito con staging workflow y branching strategy
 
 ---
 
 ## Estado del Repo
 
-| Aspecto | Estado |
-|---------|--------|
-| **Tests** | 270/270 pasando ✅ (253 + 17 nuevos) |
-| **Lint** | 0 errores, 5 warnings (pre-existentes) ✅ |
-| **Build** | OK — 312KB index ✅ |
-| **Push** | ✅ Autenticado con PAT, push funciona directo |
+| Aspecto | Sesión 1 | Sesión 2 | Sesión 3 |
+|---------|----------|----------|----------|
+| Tests | 253 | 270 | **301** (+31) |
+| Index KB | 312 | 298 | 298 |
+| Commits | 1 | 2 | **3** |
+| Push | ✅ | ✅ | ✅ |
 
 ---
 
-## Archivos Modificados (Ambas Sesiones)
+## Archivos Modificados (Sesión 3)
 
-### Sesión 1
 ```
-M  src/lib/error-reporter.ts          # APP_VERSION fix
-M  src/lib/__tests__/phone-validator.test.ts  # Flaky test fix
-M  src/lib/column-mapper.ts           # Regex mejorado
-M  src/lib/export-utils.ts            # Dedup CSV logic
-M  public/.htaccess                   # HSTS header
-M  SECURITY.md                        # Email real
-M  Documents/MASTERPLAN.md            # Datos actualizados
-A  Documents/CTO_AUDIT.md             # Auditoría completa
-A  CHANGELOG.md                       # Historial de cambios
-```
-
-### Sesión 2
-```
-M  src/integrations/supabase/client.ts  # Lazy init (getSupabase)
-M  src/lib/ai-validator.ts             # Migrado a getSupabase()
-M  src/hooks/useAIPipeline.ts          # Migrado a getSupabase()
-M  src/components/GoogleContactsPanel.tsx  # Migrado a getSupabase()
-M  src/components/ApiKeysPanel.tsx     # Migrado a getSupabase()
-M  src/components/HealthCheckPanel.tsx  # Migrado a getSupabase()
-M  src/lib/error-reporter.ts           # Migrado a getSupabase()
-M  src/App.tsx                         # Eliminado radix Toaster
-A  src/lib/__tests__/google-contacts-edge.test.ts  # 17 nuevos tests
-A  .github/workflows/deploy-staging.yml  # Staging workflow
-M  CHANGELOG.md                        # Actualizado
+A  src/lib/__tests__/clean-contacts-edge.test.ts  # 31 nuevos tests
+M  CONTRIBUTING.md                                 # Reescrito: staging, branching, PR template
+M  CHANGELOG.md                                    # Actualizado
 ```
 
 ---
@@ -69,32 +49,28 @@ M  CHANGELOG.md                        # Actualizado
 ## Próximos Pasos Recomendados
 
 ### Próxima sesión
-1. **Tests de clean-contacts Edge Function** — Similar a los de Google Contacts
-2. **useReducer para useContactProcessing** — El hook maneja mucho estado con useState
-3. **Lazy import de Sentry** — Ya está code-split pero se importa dinámicamente en error-reporter
-4. **CHANGELOG automation** — conventional-commits + changelog automático
+1. **useReducer para useContactProcessing** — Refactor del hook principal (riesgo medio)
+2. **Lazy import de Sentry** — Verificar que Sentry no se carga innecesariamente
+3. **Staging .htaccess** — CSP diferente para staging
+4. **Tests de integración E2E para Google Contacts** — Flujo completo OAuth → import → delete
 
 ### Futuro
-5. **Harden JWT verification** — El fail-open en verifyJWT() debería ser configurable
-6. **Staging .htaccess** — Crear .htaccess para staging con CSP diferente
+5. **Harden JWT verification** — fail-open configurable
+6. **CHANGELOG automation** — conventional-commits + changelog automático
 7. **Product Hunt launch** — Preparar launch materials
 8. **Comunidad** — Twitter/X presencia
 
 ---
 
-## Contexto para Continuación
+## Métricas Acumuladas (3 Sesiones)
 
-Soy el CTO de MejoraContactos. En 2 sesiones hice:
-- Auditoría completa del proyecto
-- 6 fixes críticos + 4 mejoras arquitectónicas
-- 17 nuevos tests (270 total)
-- Staging environment
-- Documentación completa (CTO_AUDIT, CHANGELOG, CTO_HANDOFF)
-
-**El proyecto está en excelente estado.** Las mejoras son incrementales, no hay blockers.
-
-**Para continuar:** Decime "continuemos" y retomamos desde los próximos pasos.
+| Métrica | Antes | Después | Delta |
+|---------|-------|---------|-------|
+| Tests | 253 | 301 | +48 (+19%) |
+| Index KB | 312 | 298 | -14 (-4.5%) |
+| Edge Function tests | 0 | 48 | +48 |
+| Documentación | 3 docs | 7 docs | +4 |
 
 ---
 
-*CTO Agent — 2026-05-13 — Sesión 2*
+*CTO Agent — 2026-05-13 — Sesión 3*
