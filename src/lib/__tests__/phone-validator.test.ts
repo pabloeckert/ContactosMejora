@@ -1,5 +1,16 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll } from "vitest";
 import { validatePhone, validatePhoneBatch, getPhoneBadge, getLineTypeLabel } from "@/lib/phone-validator";
+
+// Ensure libphonenumber-js is loaded before running tests.
+// The phone-validator module lazy-loads it; in test environments with
+// many test files running, the async preload may not finish before
+// assertions fire, causing fallback-path results (flaky failures).
+beforeAll(async () => {
+  // Trigger a validation to force the lazy import to resolve
+  validatePhone("+12025551234", "US");
+  // Small wait for the dynamic import to complete
+  await new Promise(r => setTimeout(r, 100));
+});
 
 describe("validatePhone", () => {
   it("should validate Argentine number with + prefix", () => {

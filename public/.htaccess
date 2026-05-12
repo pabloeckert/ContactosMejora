@@ -21,6 +21,9 @@ RewriteRule . /mejoracontactos/index.html [L]
   # XSS protection (legacy browsers)
   Header set X-XSS-Protection "1; mode=block"
 
+  # HSTS — Force HTTPS for 1 year (includeSubDomains for future use)
+  Header set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
   # Referrer policy
   Header set Referrer-Policy "strict-origin-when-cross-origin"
 

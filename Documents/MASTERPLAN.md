@@ -6,7 +6,7 @@
 **Versión actual:** v12.8
 **Repo:** [pabloeckert/MejoraContactos](https://github.com/pabloeckert/MejoraContactos)
 **Live:** https://util.mejoraok.com/mejoracontactos/
-**Tests:** 253 pasando ✅ | E2E: 21 pasando ✅ | Build: 312KB index ✅ | Lint: 0 errores ✅
+**Tests:** 253 unit pasando ✅ | E2E: 21 pasando ✅ | Build: 312KB index ✅ | Lint: 0 errores (5 warnings) ✅
 
 ---
 
@@ -587,4 +587,4 @@ bash scripts/perf-check.sh                       # Performance budget check
 ---
 
 *Documento maestro — Actualizar al decir "documentar".*
-*2026-05-05 04:11 GMT+8 — 219 tests · 21 E2E · v12.8 · 12 proveedores IA · Google Contacts delete · CRM exports · Pipeline híbrido · GDPR · BETA*
+*2026-05-13 — 253 tests · 21 E2E · v12.9 · 12 proveedores IA · Google Contacts delete · CRM exports · Pipeline híbrido · GDPR · BETA · CTO Audit completa*

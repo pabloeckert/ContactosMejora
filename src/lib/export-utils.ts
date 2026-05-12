@@ -52,16 +52,8 @@ function buildCSV(headers: string[], rows: string[][]): string {
 export function exportCSV(contacts: UnifiedContact[]): string {
   const rows = contacts.map(contactToRow);
   const headers = Object.keys(rows[0] || {});
-  const lines = [
-    headers.join(","),
-    ...rows.map((r) =>
-      headers.map((h) => {
-        const val = String((r as Record<string, string>)[h] || "");
-        return val.includes(",") || val.includes('"') ? `"${val.replace(/"/g, '""')}"` : val;
-      }).join(",")
-    ),
-  ];
-  return lines.join("\n");
+  const data = rows.map(r => headers.map(h => String((r as Record<string, string>)[h] || "")));
+  return buildCSV(headers, data);
 }
 
 export async function exportExcel(clean: UnifiedContact[], discarded: UnifiedContact[]): Promise<Uint8Array> {

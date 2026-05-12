@@ -13,7 +13,7 @@
 
 Instead, report it privately:
 
-1. **Email:** [Insert security email]
+1. **Email:** security@mejoraok.com
 2. **GitHub:** Use [Private vulnerability reporting](https://github.com/pabloeckert/MejoraContactos/security/advisories/new)
 
 ### What to include

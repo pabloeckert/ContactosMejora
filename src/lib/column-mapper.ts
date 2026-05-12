@@ -3,7 +3,7 @@ import type { ColumnMapping, ContactField } from "@/types/contact";
 const PATTERNS: Record<ContactField, RegExp> = {
   firstName: /^(first?.?name|nombre|given.?name|primer.?nombre|name|nom)$/i,
   lastName: /^(last?.?name|apellido|family.?name|surname|ape)$/i,
-  whatsapp: /^(phone|tel|tel[eé]fono|mobile|celular|cel|whatsapp|wsp|wa|phone?.?1|primary?.?phone|telf|telefono|teléfono|f[eé]l[eé]fono)$/i,
+  whatsapp: /^(phone|tel|tel[eé]fono|mobile|celular|cel|whatsapp|wsp|wa|phone?.?1|primary?.?phone|telf|telefono|teléfono|f[eé]l[eé]fono|mobile?.?phone|cell?.?phone|cell|móvil|movil)$/i,
   company: /^(company|org|organization|empresa|organizaci[oó]n|compa[ñn][ií]a|compania)$/i,
   jobTitle: /^(job?.?title|title|cargo|puesto|position|rol)$/i,
   email: /^(e?.?mail|correo|email?.?address|e-mail)$/i,
