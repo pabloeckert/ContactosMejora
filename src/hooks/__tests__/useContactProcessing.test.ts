@@ -10,6 +10,8 @@ vi.mock("@/lib/api-keys", () => ({
 
 vi.mock("@/lib/db", () => ({
   clearContacts: vi.fn().mockResolvedValue(undefined),
+  saveHistorySnapshot: vi.fn().mockResolvedValue(undefined),
+  getAllContacts: vi.fn().mockResolvedValue([]),
 }));
 
 vi.mock("@/integrations/supabase/client", () => ({
@@ -109,12 +111,21 @@ describe("useContactProcessing", () => {
   });
 
   it("should reset state correctly", () => {
-    const { result } = renderHook(() => useContactProcessing(makeFiles()));
+    // Use empty files so auto-mapping doesn't fire after reset
+    const { result } = renderHook(() => useContactProcessing([]));
     act(() => {
       result.current.resetState();
     });
     expect(result.current.stats.status).toBe("idle");
     expect(result.current.logs).toEqual([]);
+  });
+
+  it("should auto-map columns and add log when files are provided", () => {
+    const { result } = renderHook(() => useContactProcessing(makeFiles()));
+    // Auto-mapping fires synchronously during render
+    expect(result.current.mappings.length).toBeGreaterThan(0);
+    expect(result.current.logs.length).toBe(1);
+    expect(result.current.logs[0].type).toBe("info");
   });
 
   it("should toggle pause state", () => {
