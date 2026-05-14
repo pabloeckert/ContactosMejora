@@ -1,9 +1,7 @@
-# CI — Tests & Lint
+# CI — Tests & Lint (PRs only; push-to-main is covered by deploy-pages.yml)
 
 on:
   pull_request:
-    branches: [main]
-  push:
     branches: [main]
 
 concurrency:
