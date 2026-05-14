@@ -1,7 +1,7 @@
 # 🤝 CTO Handoff — Session Summary
 
-> **Fecha:** 2026-05-13
-> **Sesiones:** 6 (misma fecha)
+> **Fecha última sesión:** 2026-05-14
+> **Sesiones CTO:** 7 (branch: `claude/cto-analysis-framework-0CVCV`)
 > **Hosting:** GitHub Pages (permanente)
 > **Producción:** https://pabloeckert.github.io/MejoraContactos/
 > **Próxima lectura:** `Documents/SESSION_RESUME.md` → decir "continuemos"
@@ -152,25 +152,44 @@ M  src/lib/analytics.ts
 - Scripts preparados: cleanup-branches.sh, deploy-edge-functions.sh
 - Branches evaluadas: staging (eliminar), 5 dependabot (cerrar PRs)
 
+### Sesión 7: CTO Audit — Bug Fixes + CI + Usage Consolidation ✅ (2026-05-14)
+- **327 tests** (era 325 fallando → 327 pasando)
+- **Fase 7:** Fix test flaky post-reset, nuevo test auto-mapeo, expand db mocks, fix perf-check.sh
+- **Fase 8:** ci.yml solo corre en PRs (eliminada duplicación con deploy-pages.yml en push:main)
+- **Fase 9 — Bug Crítico:** `recordBatch()` se ejecutaba 2 veces por proceso → usuarios free agotaban límite al doble de velocidad. Fix: eliminado llamado duplicado en ProcessingPanel.tsx
+- **Fase 9 — Bug Crítico:** `getTier()` ignoraba API keys reales del usuario (siempre "free"). Fix: `hasOwnApiKeys()` integrado en `getTier()`
+- **Fase 9:** `usage.ts` eliminado; `usage-limits.ts` es la única fuente de verdad
+- **Branch:** `claude/cto-analysis-framework-0CVCV`
+
+---
+
+## Estado del Repo (2026-05-14)
+
+| Aspecto | Estado |
+|---------|--------|
+| **Tests** | 327/327 ✅ |
+| **Lint** | 0 errores ✅ |
+| **Build** | 298KB index ✅ |
+| **Hosting** | GitHub Pages ✅ |
+| **Deploy** | Automático en push a main ✅ |
+
 ---
 
 ## Próximos Pasos Recomendados
 
-### 🔴 Crítico (Fase 3 — Producción)
-1. **Migraciones SQL** — Ejecutar en Supabase Dashboard (ver SESSION_RESUME.md §3.1)
-2. **Deploy Edge Functions** — `scripts/deploy-edge-functions.sh`
-3. **Eliminar branches remote** — `scripts/cleanup-branches.sh`
+### 🔴 Crítico (requiere acción del usuario)
+1. **Migraciones SQL** — Ejecutar en Supabase Dashboard (ver SESSION_RESUME.md §10.1)
+2. **Deploy Edge Functions** — `npx supabase functions deploy ...`
 
-### 🟡 Importante (Fase 4 — Refactor)
-4. **useReducer para useContactProcessing** — Refactor del hook principal
-5. **E2E tests Google Contacts** — Flujo OAuth completo
-6. **Sentry DSN** — Crear proyecto en sentry.io
+### 🟡 Importante (próxima sesión CTO)
+3. **E2E tests Google Contacts** — Flujo OAuth completo sin cobertura E2E
+4. **Sentry DSN** — Crear proyecto en sentry.io, configurar `VITE_SENTRY_DSN`
+5. **Merge a main** — branch `claude/cto-analysis-framework-0CVCV` → `main`
 
 ### 🟢 Futuro
-7. **CHANGELOG automation** — conventional-commits
-8. **Custom domain** — Configurar dominio propio si se necesita
-9. **Product Hunt launch** — Preparar launch materials
+6. **CHANGELOG automation** — conventional-commits
+7. **Product Hunt launch** — Preparar materiales de lanzamiento
 
 ---
 
-*CTO Agent — 2026-05-13 — 6 sesiones, doc sync completa, producción preparada*
+*CTO Agent — 2026-05-14 — 7 sesiones — 327 tests — 298KB — bugs críticos resueltos*

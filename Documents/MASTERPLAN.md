@@ -2,11 +2,11 @@
 
 > **⚡ INSTRUCCIÓN:** Cuando el usuario diga **"documentar"**, actualizar este archivo con el estado actual del proyecto, trabajos realizados, pendientes y cualquier cambio relevante. Todos los documentos viven en `Documents/`.
 
-**Última actualización:** 2026-05-13 07:15 GMT+8
+**Última actualización:** 2026-05-14
 **Versión actual:** v12.9
 **Repo:** [pabloeckert/MejoraContactos](https://github.com/pabloeckert/MejoraContactos)
 **Live:** https://pabloeckert.github.io/MejoraContactos/
-**Tests:** 326 unit pasando ✅ | E2E: 21 pasando ✅ | Build: 298KB index ✅ | Lint: 0 errores ✅
+**Tests:** 327 unit pasando ✅ | E2E: 21 pasando ✅ | Build: 298KB index ✅ | Lint: 0 errores ✅
 
 ---
 
@@ -386,6 +386,14 @@ Detección automática para nombres en español e inglés:
 - coverage/ añadido a .gitignore
 - Sincronización completa de documentación (PROMPT, MASTERPLAN, PLAN_GENERAL)
 - package.json actualizado a v12.9
+
+### Sesión 16 — 2026-05-14 — CTO Audit: Bug Fixes + CI + Usage Consolidation
+- **Fase 7**: Fix test flaky (logs assertion post-reset), new auto-map test, expand db mocks (327 tests)
+- **Fase 7**: Corregido double shebang + bug cálculo tamaño total en perf-check.sh
+- **Fase 8**: Eliminada ejecución redundante de ci.yml en push:main (ahora solo PRs)
+- **Fase 9**: Bug crítico — recordBatch() se ejecutaba 2x por proceso (usuarios free agotaban límite al doble de velocidad)
+- **Fase 9**: Bug crítico — getTier() ignoraba API keys reales; ahora hasOwnApiKeys() se consulta automáticamente
+- **Fase 9**: usage.ts eliminado, usage-limits.ts es la única fuente de verdad
 
 ---
 

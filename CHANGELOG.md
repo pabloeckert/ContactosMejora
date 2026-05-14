@@ -4,6 +4,32 @@ All notable changes to MejoraContactos will be documented in this file.
 
 Format: [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/)
 
+## [12.9.6] - 2026-05-14 — CTO Session 7: Bug Fixes + CI + Usage Consolidation
+
+### Fixed
+- **Bug crítico:** `recordBatch()` se ejecutaba 2 veces por proceso (ProcessingPanel + useContactProcessing). Usuarios free agotaban su límite diario al doble de velocidad.
+- **Bug crítico:** `getTier()` en `usage-limits.ts` ignoraba las API keys configuradas por el usuario y siempre retornaba `"free"`. Ahora `hasOwnApiKeys()` se consulta automáticamente en `getTier()`.
+- **Test flaky:** `useContactProcessing` reset test usaba `makeFiles()` pero el hook re-mapea columnas al resetear con archivos presentes → logs no vacíos. Fix: usar `[]` para testear reset.
+- **perf-check.sh:** Eliminado `#!/bin/bash` duplicado; corregido cálculo de tamaño total (sumaba contenido concatenado en vez de tamaños individuales de archivos).
+
+### Changed
+- **`usage-limits.ts`:** Ahora es la única fuente de verdad para usage tracking. Agrega `hasOwnApiKeys()`, `canProcess()`, y aliases de compatibilidad (`isFreeTier`, `batchesUsed`, `batchesRemaining`, `maxBatchSize`).
+- **`ci.yml`:** Eliminado trigger `push: main` — ci.yml ahora solo corre en pull_requests. El push a main está cubierto por `deploy-pages.yml`.
+- **`ProcessingPanel.tsx`:** Migrado a `usage-limits.ts`; eliminado `recordBatch()` duplicado del callback.
+- **`UsageBanner.tsx`:** Migrado a `usage-limits.ts`.
+
+### Added
+- **Test:** Nuevo test cubre comportamiento de auto-mapeo de columnas al renderizar con archivos.
+- **Mock:** `saveHistorySnapshot` y `getAllContacts` agregados al mock de `db` en tests.
+
+### Removed
+- **`src/lib/usage.ts`:** Eliminado (lógica consolidada en `usage-limits.ts`).
+
+### Tests
+- **327/327** unit tests pasando (+2 nuevos vs sesión anterior)
+
+---
+
 ## [12.9.5] - 2026-05-13 — CTO Session 6: Doc Sync + Production Prep
 
 ### Changed
